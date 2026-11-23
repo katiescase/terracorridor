@@ -1639,10 +1639,10 @@ function trendSVG(vals, { max = 100, lines = [], fmt = (v) => String(Math.round(
     ${STOPS.map((k, i) => `<text x="${x(i)}" y="${H - 6}" text-anchor="middle"${i === cur ? ` fill="${C.ink}"` : ''}>${k === 'y0' ? '1995–2025' : STOP_LABEL[k]}</text>`).join('')}</svg>`;
 }
 // Fail closed: a kilometre with no score is unchecked, never "nothing stands out".
-function unscoredNote(missing, total) {
+function unscoredNote(missing, total, flagged = false) {
   if (!missing) return '';
   return missing === total ? `No scores yet for any of the ${total} km. Treat the whole line as unchecked, not safe.`
-    : `${missing} of ${total} km have no score yet. Treat those as unchecked, not safe; nothing stands out on the rest.`;
+    : `${missing} of ${total} km have no score yet. Treat those as unchecked, not safe${flagged ? '.' : '; nothing stands out on the rest.'}`;
 }
 function corridorNote() {
   return D.meta.corridorId === 'bc-coquihalla' ? '12 km of public mapped pipeline near Coquihalla Canyon. The 2021 floods give regional context; this is a screening of the future, not evidence of current pipe damage. Route © OpenStreetMap contributors.'
@@ -1705,7 +1705,7 @@ function groundKm(s, rank) {
 }
 function groundWhole(all, rank, hi, md) {
   const by = at() === 'y0' ? 'Today' : 'By ' + STOP_LABEL[at()], gr = all.filter((o) => o.g.tier === 'green').length;
-  const miss = unscoredNote(all.filter((o) => o.g.score == null).length, all.length);
+  const miss = unscoredNote(all.filter((o) => o.g.score == null).length, all.length, hi.length + md.length > 0);
   const lead = (hi.length && md.length ? `${by}, inspect ${kmOf(hi.length)} km first and plan visits to ${kmOf(md.length)} more.` : hi.length ? `${by}, inspect ${kmOf(hi.length)} km first.${miss ? '' : ' The rest can stay on routine checks.'}` : md.length ? `${by}, nothing scored needs inspecting urgently. Plan visits to ${kmOf(md.length)} km.` : miss ? '' : `${by}, no kilometre stands out. Routine checks are enough.`) + (miss ? (hi.length || md.length ? ' ' : '') + miss : '');
   const flagged = [...hi, ...md], nx = flagged.filter((o) => o.g.k === 'crossing').length, rain = lineMeasure('rain');
   const why = !flagged.length ? '' : nx >= flagged.length / 2 ? `Most of it is where the pipe crosses rivers, where a flood can scour away the riverbed that covers it.${rain && at() !== 'y0' && rain.change ? ` Heavy rain is expected on ${changeWords(rain.change, 'days')} than in 1995–2025.` : ''}` : 'Most of it is unstable ground: steep slopes, thinning plants, and soil that is soaked or freezes and thaws more often.';
@@ -1879,7 +1879,7 @@ function triageWhole(ranked, attn) {
   const F = { attn: ['Needs attention', attn], high: ['Inspect first', (s) => triTier(s) === 'red'], pending: ['Undecided', (s) => attn(s) && !s.wo], decided: ['Decided', (s) => !!s.wo], all: ['All', () => true] };
   if (!F[filter]) filter = 'attn';
   const rows = ranked.filter(F[filter][1]);
-  const miss = unscoredNote(segs.length - ranked.length, segs.length);
+  const miss = unscoredNote(segs.length - ranked.length, segs.length, hi + md > 0);
   const lead = hi || md ? `${by}, inspect ${kmOf(hi)} km first and plan visits to ${kmOf(md)} more.${miss ? ' ' + miss : ''}` : miss || `${by}, no kilometre stands out. Routine checks are enough.`;
   return `<div class="iwhere">${esc(lineName())}</div><h1 class="ih1 t">Where to look first<span class="sub">${kmOf(segs.length)} km · ${at() === 'y0' ? 'today' : STOP_LABEL[at()]}${hazardFilter === 'all' ? '' : ' · ' + HF[hazardFilter].toLowerCase()}</span></h1>
     <p class="ilead">${esc(lead)}</p>
