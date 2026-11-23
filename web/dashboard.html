@@ -660,7 +660,8 @@ const sliderFromCost = (c) => Math.round(100 * Math.log(c / 430000) / Math.log(1
 let D, cfg, segs, page = null, stop = 'y10', layer = 'risk', selected = null, hover = null, filter = 'attn', hazardFilter = 'all', buildFilter = 'ready';
 let map, baseLayers = {}, lines = {}, casings = {}, sunBands = {}, sunLayer, crossLayer, crossMarkers = [], annoLayer, spotLayer, audit = [], firstDraw = true, anim = null, playing = false;
 const byId = (id) => D.segments.find((s) => s.id === id);
-const segmentLabel = s => 'km ' + s.kmFrom + '–' + s.kmTo;
+const kmPost = (v) => (Number.isInteger(v) ? v : Math.round(v * 10) / 10);
+const segmentLabel = s => 'km ' + kmPost(s.kmFrom) + '–' + kmPost(s.kmTo);
 const years = () => stop === 'y5' ? 5 : 10;
 const kmOf = (n) => n * ((D.config && D.config.segmentKm) || 1);
 
@@ -1596,7 +1597,7 @@ function stripHTML(o) {
       <span class="need">${esc(o.need)}${o.chips.map((c) => ` <button type="button" class="kmchip${c.id === selected ? ' on' : ''}" data-id="${esc(c.id)}"><b>${esc(c.label)}</b> ${esc(c.reason)}</button>`).join('')}${o.chips.length > 1 ? ` <button type="button" class="kmstep" data-step="-1" aria-label="Previous section">‹</button><button type="button" class="kmstep" data-step="1" aria-label="Next section">›</button>` : ''}</span>
       <span class="tools"><button type="button" data-whole>Whole line</button></span></div>
     <div class="cells${d.numbers ? '' : ' dense'}" style="gap:${d.gap}px">${o.cells.map((c) => `<button type="button" class="cell${c.id === selected ? ' sel' : ''}${c.dot ? ' dot' : ''}" data-id="${esc(c.id)}" style="--c:${c.col};color:${c.ink || C.bg}" title="${esc(c.tip)}" aria-label="${esc(c.tip)}">${d.numbers ? esc(c.text) : ''}</button>`).join('')}</div>
-    <div class="cells ruler" style="gap:${d.gap}px">${segs.map((x) => `<span>${x.kmFrom % d.step === 0 ? x.kmFrom : ''}</span>`).join('')}</div>
+    <div class="cells ruler" style="gap:${d.gap}px">${segs.map((x, i) => { const b = Math.floor(x.kmFrom / d.step); const first = i === 0 || Math.floor(segs[i - 1].kmFrom / d.step) !== b; return `<span>${first ? b * d.step : ''}</span>`; }).join('')}</div>
     <div class="key">${o.key.map(([l, c, cls]) => `<span><i class="${cls || ''}" style="${c ? 'background:' + c : ''}"></i>${esc(l)}</span>`).join('')}<span class="why">${esc(o.why)}</span></div>`;
 }
 function wireStrip(el, chips) {
