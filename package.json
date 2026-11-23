@@ -4,7 +4,7 @@
   "private": true,
   "description": "Pipeline compliance platform: one record per kilometre for class location, geohazards, land obligations and encroachment, with one approval trail.",
   "scripts": {
-    "test": "node --test test/engine.test.js test/dashboard-api.test.js test/workflows.test.js test/corridors.test.js test/platform.test.js test/growth.test.js",
+    "test": "node --test test/engine.test.js test/dashboard-api.test.js test/workflows.test.js test/corridors.test.js test/platform.test.js test/growth.test.js test/ngtl-w2-cache.test.js",
     "demo": "node scripts/make-demo.js",
     "build": "node scripts/make-platform-data.js && node scripts/build.js && node scripts/make-api-workflow.js",
     "features": "node ml/features.js",
