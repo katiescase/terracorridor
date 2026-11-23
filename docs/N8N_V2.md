@@ -64,6 +64,7 @@ W2 needs a climate cell for every segment, and Open-Meteo blocks n8n Cloud, so c
 
 - **`grid_cell_deg` = 0.5** (Edmonton stays 0.1). Open-Meteo's free tier allows about 5 cells a day per IP; at 0.1 degree NGTL needs 55 cells, at 0.5 degree 9 (`data/ngtl/cells.json`). A 0.5 degree cell is about 55 × 32 km here, close to the native grid of the three climate models, but every km in a cell shares its climate numbers.
 - **Slower NDVI and elevation calls** (NDVI 5 per 3 s, elevation 10 per 3 s). At the old pace 441 of 508 segments came back "Try spacing your requests out" and stayed unverified.
+- **NDVI and elevation are fetched once per segment (Nov 23).** Needs live NDVI / Needs live elevation send only segments whose `ngtl_baselines` row has no usable NDVI series (4+ growing seasons) or no end elevations; Align NDVI / Align elevation match the answers back by segment_id. Each run therefore only asks Copernicus for the km still missing. Change made by `scripts/ngtl-w2-cache.js`, tested in `test/ngtl-w2-cache.test.js`.
 
 Steps:
 
