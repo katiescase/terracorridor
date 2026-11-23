@@ -25,12 +25,21 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url || steps.deployment_retry.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:
           path: deploy
+      # Pages sometimes answers "Deployment failed, try again later" (seen Nov 23 on back-to-back pushes):
+      # wait a minute and try the same artifact once more before failing the run.
       - id: deployment
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+      - name: Wait before retrying
+        if: steps.deployment.outcome == 'failure'
+        run: sleep 60
+      - id: deployment_retry
+        if: steps.deployment.outcome == 'failure'
         uses: actions/deploy-pages@v4
