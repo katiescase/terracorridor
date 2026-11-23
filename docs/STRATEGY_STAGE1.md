@@ -31,7 +31,7 @@ Two facts change the next ten days. KickStart asks for a **letter of intent (LOI
 | Field feedback | Implemented, not run in n8n | `src/feedback.js`, W7 export | Never executed live |
 | Approval ledger (hash-chained) | Implemented and tested | `src/ledger.js` | Lives in the browser unless W9 runs |
 | Exports (CSV, GeoJSON, PDF) | Implemented and tested | `src/export.js` | Not opened by a Maximo, SAP or Esri user |
-| Platform page (map, strip, inspector) | Implemented, demo on real data | `web/platform.html`, works offline | Not user-tested. Netlify publishes `deploy/`, so the live site's version needs checking |
+| Platform page (map, strip, inspector) | Implemented, demo on real data | `web/platform.html`, works offline | Not user-tested. GitHub Pages publishes `deploy/` (katiescase.github.io/terracorridor), so the live site's version needs checking |
 | BC Coquihalla corridor | Partial | `docs/BC_CORRIDOR.md` | Seed workflow not run live |
 
 **One correction to the hub [Confirmed, repo].** The brief says the 9-month lag from permit to occupied home is assumed. The time from building permit to move-in is now measured across the whole city of Edmonton: a median of 8.5 months over 8,231 homes (commit `89294ed`). What is still assumed is the lead time on a specific corridor's class change, because the older class-change backtest has not been rerun with the measured lag. The Calgary backtest should measure it directly.

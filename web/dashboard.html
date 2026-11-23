@@ -427,11 +427,12 @@
   .cstrip .head button { background:none; border:1px solid var(--gl); border-radius:99px; padding:4px 12px; font-size:13px; cursor:pointer; color:var(--ink); } .cstrip .head button:hover { background:var(--s3); }
   .cstrip .kmchip { border-color:var(--i2) !important; padding:2px 10px !important; } .cstrip .kmchip.on { background:var(--ink) !important; color:var(--bg) !important; }
   .cstrip .kmchip b { font-weight:600; margin-right:4px; color:inherit; } .cstrip .kmstep { padding:2px 9px !important; font-size:14px !important; line-height:1; }
-  .cstrip .cells { display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:3px; }
+  .cstrip .cells { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr); gap:3px; }
+  .cstrip .cells.dense .cell { border-radius:0; } .cstrip .cells.dense .cell:hover { transform:none; filter:brightness(1.15); }
   .cstrip .cell { height:30px; border-radius:5px; border:0; padding:0; cursor:pointer; font:600 12px var(--sans); font-variant-numeric:tabular-nums; position:relative; transition:transform .15s; background:var(--c); }
   .cstrip .cell:hover { transform:translateY(-2px); } .cstrip .cell.sel { outline:2px solid var(--ink); outline-offset:2px; }
   .cstrip .cell.dot::after { content:''; position:absolute; top:-9px; left:50%; width:8px; height:8px; margin-left:-4px; border-radius:50%; background:var(--bg); border:2px solid #1f6fc2; }
-  .cstrip .ruler { margin-top:5px; font:11px var(--sans); font-variant-numeric:tabular-nums; color:var(--i3); } .cstrip .ruler span { text-align:center; }
+  .cstrip .ruler { margin-top:5px; font:11px var(--sans); font-variant-numeric:tabular-nums; color:var(--i3); } .cstrip .ruler span { text-align:center; white-space:nowrap; overflow:visible; }
   .cstrip .key { display:flex; gap:16px; margin-top:7px; font-size:12px; color:var(--i2); flex-wrap:wrap; align-items:center; } .cstrip .key i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:6px; vertical-align:-1px; }
   .cstrip .key i.ring { border-radius:50%; background:var(--bg); border:2px solid #1f6fc2; width:9px; height:9px; }
   .cstrip .key .why { color:var(--i3); flex-basis:100%; }
@@ -804,6 +805,11 @@ function recompute() {
 function refresh() {
   paint(); renderLegend(); drawStrip(); updateTimeline(); renderPage(); updateAnnotations();
 }
+let stripResize = 0;
+window.addEventListener('resize', () => {
+  clearTimeout(stripResize);
+  stripResize = setTimeout(() => { if (['ground', 'climate', 'triage'].includes(page) && D && segs && stripDensity(segs.length).key !== stripKey) renderPage(); }, 150);
+});
 function renderPage() {
   ({ ground: renderGround, climate: renderClimate, triage: renderTriage, segment: renderSegment, money: renderMoney, build: renderBuild, log: renderLog })[page]();
 }
@@ -1573,12 +1579,24 @@ function groundWhy(s, g) {
 const deadline = () => at() === 'y0' ? 'the next wet season' : ((cfg.horizons || {})[at()] || [])[0] || 'then';
 
 /* shared pieces */
+// How busy the strip can be: on a long corridor (NGTL has 508 km) the cells get a pixel or two wide, so the gap
+// shrinks, the score numbers move to each cell's tooltip, and km labels go every 2, 5, 10, 20, 25, 50... km so
+// they sit at least 34 px apart.
+function stripDensity(n) {
+  const host = document.querySelector('#view-' + page + ' .cstrip');
+  const avail = host && host.clientWidth ? host.clientWidth - 28 : (window.innerWidth > 900 ? window.innerWidth - 524 : window.innerWidth - 52);
+  const cellW = Math.max(200, avail) / Math.max(1, n);
+  const step = [2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000].find((k) => k * cellW >= 34) || 2000;
+  return { gap: cellW >= 14 ? 3 : cellW >= 5 ? 1 : 0, step, numbers: cellW >= 20, key: [cellW >= 14 ? 3 : cellW >= 5 ? 1 : 0, step, cellW >= 20].join() };
+}
+let stripKey = '';
 function stripHTML(o) {
+  const d = stripDensity(segs.length); stripKey = d.key;
   return `<div class="head"><b>${esc(lineName())}</b><span>${kmOf(segs.length)} km · ${esc(o.when)}</span>
       <span class="need">${esc(o.need)}${o.chips.map((c) => ` <button type="button" class="kmchip${c.id === selected ? ' on' : ''}" data-id="${esc(c.id)}"><b>${esc(c.label)}</b> ${esc(c.reason)}</button>`).join('')}${o.chips.length > 1 ? ` <button type="button" class="kmstep" data-step="-1" aria-label="Previous section">‹</button><button type="button" class="kmstep" data-step="1" aria-label="Next section">›</button>` : ''}</span>
       <span class="tools"><button type="button" data-whole>Whole line</button></span></div>
-    <div class="cells">${o.cells.map((c) => `<button type="button" class="cell${c.id === selected ? ' sel' : ''}${c.dot ? ' dot' : ''}" data-id="${esc(c.id)}" style="--c:${c.col};color:${c.ink || C.bg}" title="${esc(c.tip)}" aria-label="${esc(c.tip)}">${esc(c.text)}</button>`).join('')}</div>
-    <div class="cells ruler">${segs.map((x) => `<span>${x.kmFrom % 2 === 0 ? x.kmFrom : ''}</span>`).join('')}</div>
+    <div class="cells${d.numbers ? '' : ' dense'}" style="gap:${d.gap}px">${o.cells.map((c) => `<button type="button" class="cell${c.id === selected ? ' sel' : ''}${c.dot ? ' dot' : ''}" data-id="${esc(c.id)}" style="--c:${c.col};color:${c.ink || C.bg}" title="${esc(c.tip)}" aria-label="${esc(c.tip)}">${d.numbers ? esc(c.text) : ''}</button>`).join('')}</div>
+    <div class="cells ruler" style="gap:${d.gap}px">${segs.map((x) => `<span>${x.kmFrom % d.step === 0 ? x.kmFrom : ''}</span>`).join('')}</div>
     <div class="key">${o.key.map(([l, c, cls]) => `<span><i class="${cls || ''}" style="${c ? 'background:' + c : ''}"></i>${esc(l)}</span>`).join('')}<span class="why">${esc(o.why)}</span></div>`;
 }
 function wireStrip(el, chips) {

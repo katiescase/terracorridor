@@ -5,7 +5,7 @@ This adds a separate BC screening corridor. Edmonton remains available and its c
 ## What is built and what has actually run
 
 - **Prepared locally:** BC data collection, exported W2 scoring, the dashboard, offline assessment, manual seed, source integrity checks and automated/browser tests.
-- **Not claimed:** a live n8n execution of the new BC seed, operator verification, field inspection, current pipe condition, failure probability, or a new Netlify deployment.
+- **Not claimed:** a live n8n execution of the new BC seed, operator verification, field inspection, current pipe condition, failure probability, or a new deployment.
 - BC can be explored immediately from the built file or hosted page as **Prepared assessment · local actions**. An API error, empty result or wrong corridor cannot turn the saved assessment into a claimed live connection. Local approvals never become email requests on reconnection.
 - After the BC seed and updated API are imported, the page reads the stored BC rows from n8n. The metadata still explains that the assessment was computed using the exported W2 code and cached observations.
 
@@ -68,9 +68,9 @@ Do these after obtaining and reviewing this branch. Existing table IDs remain un
 8. W2's repository update preserves the cached NDVI source label. Import it into the existing W2 only if you need native BC rescoring. Its default weekly corridor remains Edmonton; this seed does not change that schedule. A native rescore can replace GLO-30 endpoint inputs with the live elevation provider; inspect provenance and numbers afterwards. For the pinned demonstration, rebuild from the reviewed cache and reseed instead.
 9. Existing WF4/email workflows can receive a manager-requested inspection for a BC segment only when BC data loads from n8n. The prepared fallback never submits real actions. Test one approval and its email state separately if needed; do not treat the mocked browser approval as a live SMTP test.
 
-## Netlify deployment
+## Deployment (GitHub Pages)
 
-The build includes both saved assessments and inlined Leaflet. Deploy the **entire `deploy/` folder**, including `index.html` and `sw.js`. It opens BC by default; Edmonton is available in the selector and at `?corridor=ab-strathcona-demo`. Existing Edmonton deep links with only a hash still resolve to their Edmonton segment automatically.
+The build includes both saved assessments and inlined Leaflet. GitHub Pages publishes the **entire `deploy/` folder**, including `index.html` and `sw.js`, at https://katiescase.github.io/terracorridor/ whenever `deploy/` changes on `main` (`.github/workflows/pages.yml`). It opens BC by default; Edmonton is available in the selector and at `?corridor=ab-strathcona-demo`. Existing Edmonton deep links with only a hash still resolve to their Edmonton segment automatically.
 
 Open online once, switch corridors, then disable the network and reload each URL. Basemap tiles need a network, but both routes, reports, CSV exports and clearly labelled local-only actions work from the cached app shell. A stale API returning Edmonton for a BC request is rejected.
 

@@ -1,6 +1,7 @@
 # Weekly class location refresh, without n8n. Replaces the W6 schedule.
 # Pulls the free City of Edmonton open data, rebuilds the platform data, the replay and the pages,
-# and commits the result. Netlify redeploys from the commit.
+# and commits the result, then starts the Pages workflow (pages.yml) so GitHub Pages republishes deploy/.
+# A push made with the workflow's own token does not start other workflows, hence the explicit start.
 # Runs only from the default branch. On a fork, open the Actions tab once and enable workflows.
 # A public repo with no activity for 60 days has its schedules switched off by GitHub: re-enable it there.
 name: Class location refresh
@@ -12,6 +13,7 @@ on:
 
 permissions:
   contents: write
+  actions: write   # to start pages.yml after a data commit
 
 concurrency:
   group: class-location-refresh
@@ -35,6 +37,7 @@ jobs:
       - name: Run the tests
         run: npm test
       - name: Commit if the data changed
+        id: commit
         run: |
           git config user.name "terracorridor-refresh"
           git config user.email "actions@users.noreply.github.com"
@@ -44,4 +47,10 @@ jobs:
           else
             git commit -m "Refresh class location data from City of Edmonton open data"
             git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
+      - name: Republish GitHub Pages
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --ref "$GITHUB_REF_NAME"

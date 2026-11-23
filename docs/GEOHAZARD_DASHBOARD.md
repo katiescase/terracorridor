@@ -60,7 +60,7 @@ scripts/validate-workflows.js Checks every workflow export before import
 scripts/fetch-climate-cells.js Laptop script that fills the weather cache when n8n Cloud is blocked by Open-Meteo
 scripts/fetch-crossings.js    Laptop script: OSM waterways crossed by each segment -> data/cache/crossings/
 scripts/make-snapshot.js      Saves the live feed as the offline snapshot built into dist/dashboard.html and deploy/index.html
-deploy/index.html        The page Netlify serves: dist/dashboard.html with this team's n8n webhook as default (built by npm run build)
+deploy/index.html        The page GitHub Pages serves: dist/dashboard.html with this team's n8n webhook as default (built by npm run build)
 web/vendor/              Leaflet 1.9.4, inlined at build time so the page works offline
 src/dashboard-api.js     Builds the dashboard JSON from the Data tables (the API workflow's Code node)
 workflows/               The n8n exports W1 to W5 plus the API workflow. See workflows/README.md
