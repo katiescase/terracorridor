@@ -5,21 +5,27 @@
 //   - mapped waterway crossings (data/cache/crossings/*.json) -> corridor_baselines.crossings_json (update by segment_id)
 // It only writes those two things, makes no external calls, and is safe to run again.
 // Usage: node scripts/make-seed-workflow.js   (after scripts/fetch-climate-cells.js and/or scripts/fetch-crossings.js)
+//        node scripts/make-seed-workflow.js --corridor ngtl-ab-osm   (NGTL: data/ngtl/climate-cells.json + data/ngtl/crossings.json
+//        -> ngtl_climate_cells / ngtl_baselines, written to workflows/ngtl/NGTL Seed - Hazard inputs.json)
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const root = path.join(__dirname, '..');
 const wiring = JSON.parse(fs.readFileSync(path.join(root, 'workflows', 'wiring.json'), 'utf8'));
 const uuid = (s) => { const h = crypto.createHash('sha1').update('terracorridor-seed|' + s).digest('hex'); return `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-8${h.slice(17, 20)}-${h.slice(20, 32)}`; };
-const tref = (name) => ({ __rl: true, mode: 'id', value: wiring.tables[name] || 'SET_ID_' + name, cachedResultName: name });
+const NGTL = process.argv.includes('--corridor') && process.argv[process.argv.indexOf('--corridor') + 1] === 'ngtl-ab-osm';
+// NGTL copies write only to their own ngtl_* tables (IDs from docs/N8N_V2.md).
+const NGTL_TABLES = { corridor_climate_cells: { id: '7rAbbtFPPAoZJ6jC', name: 'ngtl_climate_cells' }, corridor_baselines: { id: 'ZTaX6AEU5LB1jjMD', name: 'ngtl_baselines' } };
+const tref = (name) => NGTL ? { __rl: true, mode: 'id', value: NGTL_TABLES[name].id, cachedResultName: NGTL_TABLES[name].name } : ({ __rl: true, mode: 'id', value: wiring.tables[name] || 'SET_ID_' + name, cachedResultName: name });
 
-const cellDir = path.join(root, 'data', 'cache', 'cells');
-const cells = fs.readdirSync(cellDir).filter((f) => f.endsWith('.json')).flatMap((f) => JSON.parse(fs.readFileSync(path.join(cellDir, f), 'utf8')))
+const cellDir = NGTL ? path.join(root, 'data', 'ngtl') : path.join(root, 'data', 'cache', 'cells');
+const cells = (NGTL ? ['climate-cells.json'] : fs.readdirSync(cellDir).filter((f) => f.endsWith('.json'))).flatMap((f) => JSON.parse(fs.readFileSync(path.join(cellDir, f), 'utf8')))
   .filter((r) => /\|v3$/.test(r.config_signature));
 const xDir = path.join(root, 'data', 'cache', 'crossings');
 const crossings = [];
-if (fs.existsSync(xDir)) for (const f of fs.readdirSync(xDir).filter((x) => x.endsWith('.json'))) {
-  const x = JSON.parse(fs.readFileSync(path.join(xDir, f), 'utf8'));
+const xFiles = NGTL ? [path.join(root, 'data', 'ngtl', 'crossings.json')] : fs.existsSync(xDir) ? fs.readdirSync(xDir).filter((x) => x.endsWith('.json')).map((x) => path.join(xDir, x)) : [];
+for (const xf of xFiles) {
+  const x = JSON.parse(fs.readFileSync(xf, 'utf8'));
   for (const [segment_id, list] of Object.entries(x.segments)) crossings.push({ segment_id, crossings_json: JSON.stringify(list.map((c) => ({ name: c.name, kind: c.kind, at: c.at, peakFlowM3s: c.peakFlowM3s ?? null }))) });
 }
 const CELL_COLS = ['cell_key', 'cell_lat', 'cell_lon', 'config_signature', 'archive_hash', 'climate_hash', 'archive_url', 'climate_url', 'archive_metrics_json', 'climate_metrics_json', 'fetched_at'];
@@ -43,6 +49,7 @@ const connections = {
   'Climate cell rows': { main: [[{ node: 'Upsert climate cells', type: 'main', index: 0 }]] },
   'Crossing rows': { main: [[{ node: 'Save crossings on baselines', type: 'main', index: 0 }]] },
 };
-const out = path.join(root, 'workflows', 'TerraCorridor Seed - Hazard inputs.json');
-fs.writeFileSync(out, JSON.stringify({ name: 'TerraCorridor Seed - Hazard inputs', nodes, connections, pinData: {}, active: false, settings: { executionOrder: 'v1' }, tags: [] }, null, 2) + '\n');
+const wfName = NGTL ? 'NGTL Seed - Hazard inputs' : 'TerraCorridor Seed - Hazard inputs';
+const out = path.join(root, 'workflows', NGTL ? 'ngtl' : '', wfName + '.json');
+fs.writeFileSync(out, JSON.stringify({ name: wfName, nodes, connections, pinData: {}, active: false, settings: { executionOrder: 'v1' }, tags: [] }, null, 2) + '\n');
 console.log(`${path.relative(root, out)}: ${cells.length} climate cell(s) [${cells.map((c) => c.cell_key).join(', ')}], crossings for ${crossings.length} segment(s)`);

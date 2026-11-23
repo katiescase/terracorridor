@@ -1,0 +1,2056 @@
+{
+  "name": "NGTL · W2: Long-Range Engine",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "538048e9-52b8-4c8b-a26e-3f248a06415f",
+      "name": "From W1 Corridor Setup",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "w1",
+              "name": "corridor_id",
+              "value": "={{ $json.corridor_id || 'ngtl-ab-osm' }}",
+              "type": "string"
+            },
+            {
+              "id": "w2",
+              "name": "segment_ids",
+              "value": "={{ Array.isArray($json.segment_ids) ? $json.segment_ids : [] }}",
+              "type": "array"
+            },
+            {
+              "id": "w3",
+              "name": "upstream_source_hash",
+              "value": "={{ $json.source_hash || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "w4",
+              "name": "triggered_by",
+              "value": "={{ $json.triggered_by || 'weekly_schedule' }}",
+              "type": "string"
+            },
+            {
+              "id": "w5",
+              "name": "archive_url",
+              "value": "https://archive-api.open-meteo.com/v1/archive",
+              "type": "string"
+            },
+            {
+              "id": "w6",
+              "name": "climate_url",
+              "value": "https://climate-api.open-meteo.com/v1/climate",
+              "type": "string"
+            },
+            {
+              "id": "w7",
+              "name": "elevation_url",
+              "value": "https://api.open-meteo.com/v1/elevation",
+              "type": "string"
+            },
+            {
+              "id": "w8",
+              "name": "ndvi_url",
+              "value": "https://sh.dataspace.copernicus.eu/api/v1/statistics",
+              "type": "string"
+            },
+            {
+              "id": "w9",
+              "name": "climate_models",
+              "value": "MRI_AGCM3_2_S,EC_Earth3P_HR,MPI_ESM1_2_XR",
+              "type": "string"
+            },
+            {
+              "id": "w10",
+              "name": "baseline_start",
+              "value": "1995-01-01",
+              "type": "string"
+            },
+            {
+              "id": "w11",
+              "name": "baseline_end",
+              "value": "2025-12-31",
+              "type": "string"
+            },
+            {
+              "id": "w12",
+              "name": "projection_start",
+              "value": "2026-01-01",
+              "type": "string"
+            },
+            {
+              "id": "w13",
+              "name": "projection_end",
+              "value": "2035-12-31",
+              "type": "string"
+            },
+            {
+              "id": "w14",
+              "name": "ndvi_from",
+              "value": "2021-01-01",
+              "type": "string"
+            },
+            {
+              "id": "w15",
+              "name": "ndvi_to",
+              "value": "2026-01-01",
+              "type": "string"
+            },
+            {
+              "id": "w16",
+              "name": "ndvi_max_cloud",
+              "value": 60,
+              "type": "number"
+            },
+            {
+              "id": "w17",
+              "name": "grid_cell_deg",
+              "value": 0.5,
+              "type": "number"
+            },
+            {
+              "id": "w18",
+              "name": "max_cell_fetches_per_run",
+              "value": 0,
+              "type": "number"
+            },
+            {
+              "id": "w19",
+              "name": "weight_r",
+              "value": 0.35,
+              "type": "number"
+            },
+            {
+              "id": "w20",
+              "name": "weight_f",
+              "value": 0.2,
+              "type": "number"
+            },
+            {
+              "id": "w21",
+              "name": "weight_w",
+              "value": 0.15,
+              "type": "number"
+            },
+            {
+              "id": "w22",
+              "name": "weight_v",
+              "value": 0.2,
+              "type": "number"
+            },
+            {
+              "id": "w23",
+              "name": "weight_s",
+              "value": 0.1,
+              "type": "number"
+            },
+            {
+              "id": "w24",
+              "name": "ratio_full_score_increase",
+              "value": 0.5,
+              "type": "number"
+            },
+            {
+              "id": "w25",
+              "name": "ndvi_drop_full_score",
+              "value": 0.1,
+              "type": "number"
+            },
+            {
+              "id": "w26",
+              "name": "slope_full_score_pct",
+              "value": 10,
+              "type": "number"
+            },
+            {
+              "id": "w27",
+              "name": "amber_min",
+              "value": 40,
+              "type": "number"
+            },
+            {
+              "id": "w28",
+              "name": "red_above",
+              "value": 65,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "605784c1-1bfb-4627-842e-09f240492450",
+      "name": "W2 Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        256,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 4
+            }
+          ]
+        }
+      },
+      "id": "680205dd-f0aa-4190-a21e-4ede833f03fe",
+      "name": "Weekly Rescore",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "xS9ClnujA4OcoBnp",
+          "cachedResultName": "ngtl_segments"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "corridor_id",
+              "keyValue": "={{ $json.corridor_id }}"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "id": "e4f50c0b-1588-4e5e-8416-35d3aa664b7e",
+      "name": "Get Segments",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        528,
+        0
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "ZTaX6AEU5LB1jjMD",
+          "cachedResultName": "ngtl_baselines"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "corridor_id",
+              "keyValue": "={{ $('W2 Config').first().json.corridor_id }}"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "id": "9a3914ff-091a-404c-aa6c-897be35016cb",
+      "name": "Get Prior Baselines",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        784,
+        0
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// ===== W2: select + validate the segment batch (fail-closed) =====\nconst cfg = $('W2 Config').first().json;\nconst rows = $('Get Segments').all().map(i => i.json).filter(r => r && typeof r.segment_id === 'string' && r.segment_id);\nconst priorRows = $('Get Prior Baselines').all().map(i => i.json).filter(r => r && r.segment_id);\n\n// De-duplicate by segment_id (keep the most recently generated row)\nconst byId = {};\nfor (const r of rows) {\n  const prev = byId[r.segment_id];\n  if (!prev || String(r.generated_at || '') > String(prev.generated_at || '')) byId[r.segment_id] = r;\n}\nconst wanted = Array.isArray(cfg.segment_ids) ? cfg.segment_ids.map(String).filter(Boolean) : [];\nlet selected;\nif (wanted.length) {\n  const missing = wanted.filter(id => !byId[id]);\n  if (missing.length) {\n    throw new Error('Fail closed: ' + missing.length + ' requested segment(s) not found in corridor_segments for corridor ' + cfg.corridor_id + ': ' + missing.slice(0, 10).join(', '));\n  }\n  selected = wanted.map(id => byId[id]);\n} else {\n  selected = Object.values(byId).filter(r => r.status === 'active');\n}\nif (selected.length === 0) {\n  throw new Error('Fail closed: no active segments found for corridor ' + cfg.corridor_id + ' - run W1 first');\n}\nselected.sort((a, b) => (Number(a.segment_index) - Number(b.segment_index)) || a.segment_id.localeCompare(b.segment_id));\n\nconst priorById = {};\nfor (const p of priorRows) priorById[p.segment_id] = p;\n\nconst CELL = Number(cfg.grid_cell_deg) || 0.1;\nconst NDVI_EVALSCRIPT = [\n  '//VERSION=3',\n  'function setup() {',\n  '  return { input: [{ bands: [\"B04\", \"B08\", \"SCL\", \"dataMask\"] }],',\n  '    output: [{ id: \"ndvi\", bands: 1, sampleType: \"FLOAT32\" }, { id: \"dataMask\", bands: 1 }] };',\n  '}',\n  'function evaluatePixel(s) {',\n  '  const ndvi = (s.B08 + s.B04) > 0 ? (s.B08 - s.B04) / (s.B08 + s.B04) : 0;',\n  '  const bad = [0, 1, 3, 8, 9, 10, 11].indexOf(s.SCL) >= 0;',\n  '  return { ndvi: [ndvi], dataMask: [s.dataMask && !bad ? 1 : 0] };',\n  '}',\n].join('\\n');\n\nfunction num(v) { const n = Number(v); return Number.isFinite(n) ? n : null; }\n\nreturn selected.map(r => {\n  const errors = [];\n  const lat0 = num(r.lat_start), lon0 = num(r.lon_start), lat1 = num(r.lat_end), lon1 = num(r.lon_end), len = num(r.length_m);\n  if ([lat0, lon0, lat1, lon1].some(v => v === null)) errors.push('segment has invalid start/end coordinates');\n  if (!(len > 0)) errors.push('segment has invalid length_m');\n  let studyStrip = null;\n  try {\n    const g = JSON.parse(r.polygon_geometry_json);\n    const f = (g.features || []).find(x => x.properties && x.properties.zone === 'study_strip');\n    if (f && f.geometry && f.geometry.type === 'MultiPolygon') studyStrip = f.geometry;\n  } catch (e) { /* handled below */ }\n  if (!studyStrip) errors.push('segment has no study_strip polygon');\n\n  const cLat = lat0 !== null && lat1 !== null ? (lat0 + lat1) / 2 : 0;\n  const cLon = lon0 !== null && lon1 !== null ? (lon0 + lon1) / 2 : 0;\n  const cellLat = Math.round(cLat / CELL) * CELL, cellLon = Math.round(cLon / CELL) * CELL;\n  const prior = priorById[r.segment_id] || {};\n\n  return { json: {\n    segment_id: r.segment_id,\n    corridor_id: r.corridor_id || cfg.corridor_id,\n    segment_index: Number(r.segment_index),\n    length_m: len,\n    lat_start: lat0, lon_start: lon0, lat_end: lat1, lon_end: lon1,\n    centroid_lat: Math.round(cLat * 1e6) / 1e6,\n    centroid_lon: Math.round(cLon * 1e6) / 1e6,\n    cell_key: cellLat.toFixed(2) + '_' + cellLon.toFixed(2),\n    cell_lat: Number(cellLat.toFixed(2)),\n    cell_lon: Number(cellLon.toFixed(2)),\n    segment_source_hash: r.source_hash || '',\n    valid: errors.length === 0,\n    validation_errors: errors,\n    elevation_url: cfg.elevation_url + '?latitude=' + lat0 + ',' + lat1 + '&longitude=' + lon0 + ',' + lon1,\n    ndvi_request: {\n      input: {\n        bounds: { geometry: studyStrip || { type: 'Polygon', coordinates: [] }, properties: { crs: 'http://www.opengis.net/def/crs/OGC/1.3/CRS84' } },\n        data: [{ type: 'sentinel-2-l2a', dataFilter: { maxCloudCoverage: Number(cfg.ndvi_max_cloud) || 60 } }],\n      },\n      aggregation: {\n        timeRange: { from: cfg.ndvi_from + 'T00:00:00Z', to: cfg.ndvi_to + 'T00:00:00Z' },\n        aggregationInterval: { of: 'P1M' },\n        evalscript: NDVI_EVALSCRIPT,\n        resx: 0.0001,\n        resy: 0.0001,\n      },\n    },\n    prior_ndvi_series_json: prior.ndvi_series_json || '',\n    prior_ndvi_hash: prior.ndvi_hash || '',\n    prior_ndvi_source: prior.ndvi_source || '',\n    // Mapped waterway crossings, loaded by scripts/fetch-crossings.js. null = never checked, '[]' = checked, none mapped.\n    crossings_json: typeof prior.crossings_json === 'string' && prior.crossings_json.trim() ? prior.crossings_json : null,\n  } };\n});\n"
+      },
+      "id": "a93d596a-e2c6-4c86-9b81-6e52f8af0528",
+      "name": "Select Batch Segments",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('W2 Config').first().json.ndvi_url }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.ndvi_request) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 5,
+              "batchInterval": 3000
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 90000
+        }
+      },
+      "id": "1d14c301-f874-45ee-8241-ffd15bcb30cd",
+      "name": "Fetch Sentinel-2 NDVI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1296,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "oAuth2Api": {
+          "id": "OAFWXMUCkmmH9psX",
+          "name": "Copernicus"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "value": "={{ $json.data || '' }}",
+        "dataPropertyName": "raw_hash"
+      },
+      "id": "d8e01a39-e779-419a-a644-3eed306e7fc3",
+      "name": "Hash NDVI",
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Select Batch Segments').item.json.elevation_url }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 10,
+              "batchInterval": 3000
+            }
+          },
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "id": "e80256b7-4bfb-460b-a625-75eee4c8c5f9",
+      "name": "Fetch Elevation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1824,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "value": "={{ $json.data || '' }}",
+        "dataPropertyName": "raw_hash"
+      },
+      "id": "746135c6-0912-481b-8ad0-7f84dd5df79d",
+      "name": "Hash Elevation",
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 2,
+      "position": [
+        2080,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "7rAbbtFPPAoZJ6jC",
+          "cachedResultName": "ngtl_climate_cells"
+        },
+        "returnAll": true
+      },
+      "id": "65d1778f-58c7-4f8c-abd0-2f7f25fd4f15",
+      "name": "Get Cached Cells",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2336,
+        0
+      ],
+      "executeOnce": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// ===== Plan grid cells: reuse cached cell climate, fetch at most N new cells per run =====\n// Historical archive (1995-2025) and CMIP6 projections are static datasets, so a cell is\n// downloaded once and reused. The Open-Meteo free tier allows ~1 new cell (archive + climate) per minute.\n// On n8n Cloud the archive and climate APIs answer 429 (shared IP), so W2 Config sets max_cell_fetches_per_run = 0:\n// cells come only from the corridor_climate_cells cache, filled from a laptop with scripts/fetch-climate-cells.js.\nconst cfg = $('W2 Config').first().json;\nconst segs = $('Select Batch Segments').all().map(i => i.json).filter(s => s.valid);\nif (segs.length === 0) throw new Error('Fail closed: no segment in the batch passed geometry validation, nothing to score');\nconst cachedRows = $('Get Cached Cells').all().map(i => i.json).filter(r => r && r.cell_key);\nconst SIG = [cfg.baseline_start, cfg.baseline_end, cfg.projection_start, cfg.projection_end, cfg.climate_models, 'v3'].join('|') // v2 added humidity (wildfire) and dry-soil / dry-spell metrics (drought); v3 = non-overlapping windows (2026-2030, 2031-2035);\n// v1 and v2 cells were averaged over overlapping windows (2026-2030, 2026-2035). Their 10-year ratios mean something\n// different, so they are NOT reused: an old cell is refetched (or seeded from a laptop run), never silently relabelled.\nconst SIG_V1 = null;\nconst MAX = Number.isFinite(Number(cfg.max_cell_fetches_per_run)) ? Number(cfg.max_cell_fetches_per_run) : 1;\n\nconst cache = {};\nfor (const r of cachedRows) {\n  if (r.config_signature !== SIG && r.config_signature !== SIG_V1) continue;\n  if (cache[r.cell_key] && cache[r.cell_key].sig === SIG) continue; // one current-signature row per cell\n  try {\n    const archive = JSON.parse(r.archive_metrics_json);\n    const climate = JSON.parse(r.climate_metrics_json);\n    if (archive && archive.ok && climate && climate.ok) cache[r.cell_key] = { archive, climate, fetched_at: r.fetched_at, sig: r.config_signature };\n  } catch (e) { /* corrupt cache row -> refetch */ }\n}\n\nconst cells = {};\nfor (const s of segs) {\n  if (!cells[s.cell_key]) cells[s.cell_key] = { cell_key: s.cell_key, lat: s.cell_lat, lon: s.cell_lon, segment_ids: [] };\n  cells[s.cell_key].segment_ids.push(s.segment_id);\n}\nlet fetching = 0;\nreturn Object.keys(cells).sort().map(k => {\n  const c = cells[k];\n  c.config_signature = SIG;\n  c.archive_url = cfg.archive_url + '?latitude=' + c.lat + '&longitude=' + c.lon +\n    '&start_date=' + cfg.baseline_start + '&end_date=' + cfg.baseline_end +\n    '&daily=precipitation_sum,temperature_2m_max,temperature_2m_min,soil_moisture_0_to_7cm_mean,relative_humidity_2m_min&timezone=UTC';\n  c.climate_url = cfg.climate_url + '?latitude=' + c.lat + '&longitude=' + c.lon +\n    '&start_date=' + cfg.baseline_start + '&end_date=' + cfg.projection_end +\n    '&models=' + cfg.climate_models +\n    '&daily=precipitation_sum,temperature_2m_max,temperature_2m_min,soil_moisture_0_to_10cm_mean,relative_humidity_2m_min';\n  if (cache[k]) return { json: Object.assign(c, { fetch: false, cache_status: 'cached', cache_signature: 'v3', archive: cache[k].archive, climate: cache[k].climate, cached_at: cache[k].fetched_at || '' }) };\n  if (fetching < MAX) { fetching++; return { json: Object.assign(c, { fetch: true, cache_status: 'fetching' }) }; }\n  const msg = MAX === 0\n    ? 'not cached: grid cell ' + k + ' has no current (v3) climate data in corridor_climate_cells. Open-Meteo blocks n8n Cloud, so fill it from a laptop with: node scripts/fetch-climate-cells.js ' + k + '. Its segments stay unverified until then'\n    : 'deferred: grid cell ' + k + ' not cached yet (Open-Meteo free tier allows ' + MAX + ' new cell per run); it is fetched on a later run';\n  return { json: Object.assign(c, { fetch: false, cache_status: MAX === 0 ? 'not_cached' : 'deferred', archive: { ok: false, error: msg, hash: '' }, climate: { ok: false, error: msg, hash: '', models: {} } }) };\n});\n"
+      },
+      "id": "e1497388-c987-4794-bd25-3f70a0787288",
+      "name": "Plan Grid Cells",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2608,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.fetch }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fa749b8a-d4cc-45aa-9237-4810126bcbf5",
+      "name": "Fetch Needed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2864,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.archive_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          },
+          "timeout": 120000
+        }
+      },
+      "id": "79af204b-4632-466b-af27-7a63f5a7d296",
+      "name": "Fetch Historical Archive",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3120,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ===== shared W2 helpers =====\nconst cfg = $('W2 Config').first().json;\nconst now = new Date().toISOString();\nconst MODELS = String(cfg.climate_models).split(',').map(s => s.trim()).filter(Boolean);\nconst W = { R: Number(cfg.weight_r), F: Number(cfg.weight_f), W: Number(cfg.weight_w), V: Number(cfg.weight_v), S: Number(cfg.weight_s) };\nconst RATIO_FULL = Number(cfg.ratio_full_score_increase) || 0.5; // +50% vs baseline => component score 1 (provisional, see docs/THRESHOLDS.md)\nconst NDVI_FULL = Number(cfg.ndvi_drop_full_score) || 0.1;\nconst SLOPE_FULL = Number(cfg.slope_full_score_pct) || 10;\nconst AMBER = Number(cfg.amber_min) || 40, RED = Number(cfg.red_above) || 65;\nconst BASE_END_YEAR = Number(String(cfg.baseline_end).slice(0, 4));\nconst BASE_START_YEAR = Number(String(cfg.baseline_start).slice(0, 4));\nconst HORIZONS = [\n  { years: 5, start: String(cfg.projection_start).slice(0, 4), end: String(Number(String(cfg.projection_start).slice(0, 4)) + 4) },\n  // Non-overlapping: the 10-year view is the second five years only (2031-2035), so it can disagree with the first.\n  { years: 10, start: String(Number(String(cfg.projection_start).slice(0, 4)) + 5), end: String(Number(String(cfg.projection_start).slice(0, 4)) + 9) },\n];\n\nconst clamp01 = x => Math.max(0, Math.min(1, x));\nconst r3 = x => (x === null || x === undefined || !Number.isFinite(x)) ? null : Math.round(x * 1000) / 1000;\nconst r1 = x => (x === null || x === undefined || !Number.isFinite(x)) ? null : Math.round(x * 10) / 10;\nfunction pct(sorted, p) {\n  if (!sorted.length) return null;\n  const idx = (sorted.length - 1) * p, lo = Math.floor(idx), hi = Math.ceil(idx);\n  return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);\n}\nfunction parseRaw(resp) {\n  if (!resp || resp.error || typeof resp.data !== 'string' || !resp.data.length) {\n    const e = resp && resp.error;\n    return { ok: false, error: (e && (e.message || e.description)) || (typeof e === 'string' ? e : 'request failed or empty response') };\n  }\n  try {\n    const j = JSON.parse(resp.data);\n    if (j && j.error === true) return { ok: false, error: j.reason || 'API returned an error' };\n    return { ok: true, json: j, hash: resp.raw_hash };\n  } catch (e) { return { ok: false, error: 'response is not valid JSON' }; }\n}\nfunction tierOf(score) { return score >= RED ? 'red' : (score >= AMBER ? 'amber' : 'green'); } // same rule as src/engine.js\n// Provisional fire-weather day (same definition as src/engine.js): no rain, hot, dry air.\nconst FIRE = { tmaxC: 25, rhMinPct: 35, dryMm: 1 };\nfunction risk(c) { return 100 * (W.R * c.R + W.F * c.F + W.W * c.W + W.V * c.V + W.S * c.S); }\n\n// Count daily events from parallel arrays, split into a baseline span and projection windows\n// rh = daily minimum relative humidity (%), or null when the source has none. Missing inputs give null rates, never zero.\nfunction seriesMetrics(time, pr, tx, tn, sm, rh) {\n  const idxBase = [];\n  for (let i = 0; i < time.length; i++) {\n    const y = Number(time[i].slice(0, 4));\n    if (y >= BASE_START_YEAR && y <= BASE_END_YEAR) idxBase.push(i);\n  }\n  const expectedBase = idxBase.length;\n  const validBase = idxBase.filter(i => Number.isFinite(pr[i]) && Number.isFinite(tx[i]) && Number.isFinite(tn[i]));\n  if (expectedBase < 365 * 10 || validBase.length < 0.95 * expectedBase) return { ok: false, error: 'baseline series incomplete (' + validBase.length + '/' + expectedBase + ' valid days)' };\n  const wet = validBase.map(i => pr[i]).filter(v => v >= 1).sort((a, b) => a - b);\n  const rainP95 = pct(wet, 0.95);\n  const soilVals = sm ? idxBase.map(i => sm[i]).filter(Number.isFinite).sort((a, b) => a - b) : [];\n  const soilOk = sm && soilVals.length >= 0.9 * expectedBase;\n  const soilP90 = soilOk ? pct(soilVals, 0.9) : null;\n  const soilP10 = soilOk ? pct(soilVals, 0.1) : null; // dry-soil day: below the baseline 10th percentile\n  const rhOk = !!rh && idxBase.filter(i => Number.isFinite(rh[i])).length >= 0.9 * expectedBase;\n  function rates(idx) {\n    const n = idx.length; if (!n) return null;\n    const v = idx.filter(i => Number.isFinite(pr[i]) && Number.isFinite(tx[i]) && Number.isFinite(tn[i]));\n    if (v.length < 0.95 * n) return null;\n    const years = v.length / 365.25;\n    const rain = v.filter(i => pr[i] > rainP95).length / years;\n    const ft = v.filter(i => tn[i] < 0 && tx[i] > 0).length / years;\n    let sat = null;\n    if (soilOk) {\n      const vs = idx.filter(i => Number.isFinite(sm[i]));\n      if (vs.length >= 0.9 * n) sat = vs.filter(i => sm[i] > soilP90).length / (vs.length / 365.25);\n    }\n    // Drought inputs: dry-soil days a year, and the mean over years of each year's longest run of days under 1 mm.\n    let dry = null;\n    if (soilOk) {\n      const vs = idx.filter(i => Number.isFinite(sm[i]));\n      if (vs.length >= 0.9 * n) dry = vs.filter(i => sm[i] < soilP10).length / (vs.length / 365.25);\n    }\n    const longest = {}; let run = 0, yr = null;\n    for (const i of idx) {\n      const y = time[i].slice(0, 4);\n      if (y !== yr) { run = 0; yr = y; }\n      run = Number.isFinite(pr[i]) && pr[i] < 1 ? run + 1 : 0;\n      longest[y] = Math.max(longest[y] || 0, run);\n    }\n    const lv = Object.values(longest);\n    const spell = lv.length ? lv.reduce((a, b) => a + b, 0) / lv.length : null;\n    // Wildfire input: fire-weather days a year. Only when this source has humidity for the window.\n    let fire = null;\n    if (rhOk) {\n      const vr = v.filter(i => Number.isFinite(rh[i]));\n      if (vr.length >= 0.9 * n) fire = vr.filter(i => pr[i] < FIRE.dryMm && tx[i] >= FIRE.tmaxC && rh[i] <= FIRE.rhMinPct).length / (vr.length / 365.25);\n    }\n    return { rain, ft, sat, dry, spell, fire };\n  }\n  const base = rates(idxBase);\n  const windows = {};\n  for (const h of HORIZONS) {\n    const idx = [];\n    for (let i = 0; i < time.length; i++) { const y = time[i].slice(0, 4); if (y >= h.start && y <= h.end) idx.push(i); }\n    windows[h.years] = rates(idx);\n  }\n  return { ok: !!base, error: base ? '' : 'baseline rates unavailable', rainP95, soilP90, soilP10, base, windows };\n}\nfunction ratio(proj, base) {\n  if (proj === null || proj === undefined || base === null || base === undefined) return null;\n  return Math.min(3, proj / Math.max(base, 0.1));\n}\n\n\n// ===== Condense the 1995-2025 observed archive for each fetched grid cell =====\n// Reads the raw file from the HTTP node and passes the file on so the next node hashes the exact bytes.\nconst items = $input.all();\nconst cells = $('Fetch Needed?').all(0).map(i => i.json);\nconst out = [];\nfor (let k = 0; k < items.length; k++) {\n  const it = items[k];\n  const cell = Object.assign({}, cells[k] || {}, it.json || {});\n  delete cell.error;\n  const res = { ok: false, error: '', hash: '' };\n  try {\n    if (!it.binary || !it.binary.data) {\n      const e = it.json && it.json.error;\n      throw new Error((e && (e.message || e.description)) || (typeof e === 'string' ? e : 'request failed or empty response'));\n    }\n    const txt = (await this.helpers.getBinaryDataBuffer(k, 'data')).toString('utf8');\n    const j = JSON.parse(txt);\n    if (j && j.error === true) throw new Error(j.reason || 'API returned an error');\n    const d = j.daily || {};\n    const m = seriesMetrics(d.time || [], d.precipitation_sum || [], d.temperature_2m_max || [], d.temperature_2m_min || [], d.soil_moisture_0_to_7cm_mean || null, d.relative_humidity_2m_min || null);\n    if (!m.ok) throw new Error(m.error);\n    Object.assign(res, { ok: true, rainP95: m.rainP95, soilP90: m.soilP90, soilP10: m.soilP10, base: m.base, fetched_at: new Date().toISOString() });\n  } catch (e) { res.error = String((e && e.message) || e).slice(0, 300); }\n  const json = { cell_key: cell.cell_key, lat: cell.lat, lon: cell.lon, segment_ids: cell.segment_ids, config_signature: cell.config_signature, archive_url: cell.archive_url, climate_url: cell.climate_url, archive: res };\n  out.push(it.binary && it.binary.data ? { json, binary: it.binary, pairedItem: { item: k } } : { json, pairedItem: { item: k } });\n}\nreturn out;\n"
+      },
+      "id": "b0b4e7cf-47df-4b65-b1e4-f0ca187df73d",
+      "name": "Condense Archive",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3376,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "binaryData": true,
+        "dataPropertyName": "raw_hash"
+      },
+      "id": "d6d8743a-4e0c-49c9-a366-f913e04c03ad",
+      "name": "Hash Archive",
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 2,
+      "position": [
+        3648,
+        0
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "amount": 61
+      },
+      "id": "5775a77d-d6e5-4ec0-82c9-7af1d2048009",
+      "name": "Pause For Rate Limit",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        3904,
+        0
+      ],
+      "webhookId": "e5c935d3-03cf-44bd-9539-9d436354b3fe"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Condense Archive').all()[$itemIndex].json.climate_url }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          },
+          "timeout": 120000
+        }
+      },
+      "id": "a73fc110-6e6e-4e9d-b8f1-4982928d9294",
+      "name": "Fetch CMIP6 Projections",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4160,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ===== shared W2 helpers =====\nconst cfg = $('W2 Config').first().json;\nconst now = new Date().toISOString();\nconst MODELS = String(cfg.climate_models).split(',').map(s => s.trim()).filter(Boolean);\nconst W = { R: Number(cfg.weight_r), F: Number(cfg.weight_f), W: Number(cfg.weight_w), V: Number(cfg.weight_v), S: Number(cfg.weight_s) };\nconst RATIO_FULL = Number(cfg.ratio_full_score_increase) || 0.5; // +50% vs baseline => component score 1 (provisional, see docs/THRESHOLDS.md)\nconst NDVI_FULL = Number(cfg.ndvi_drop_full_score) || 0.1;\nconst SLOPE_FULL = Number(cfg.slope_full_score_pct) || 10;\nconst AMBER = Number(cfg.amber_min) || 40, RED = Number(cfg.red_above) || 65;\nconst BASE_END_YEAR = Number(String(cfg.baseline_end).slice(0, 4));\nconst BASE_START_YEAR = Number(String(cfg.baseline_start).slice(0, 4));\nconst HORIZONS = [\n  { years: 5, start: String(cfg.projection_start).slice(0, 4), end: String(Number(String(cfg.projection_start).slice(0, 4)) + 4) },\n  // Non-overlapping: the 10-year view is the second five years only (2031-2035), so it can disagree with the first.\n  { years: 10, start: String(Number(String(cfg.projection_start).slice(0, 4)) + 5), end: String(Number(String(cfg.projection_start).slice(0, 4)) + 9) },\n];\n\nconst clamp01 = x => Math.max(0, Math.min(1, x));\nconst r3 = x => (x === null || x === undefined || !Number.isFinite(x)) ? null : Math.round(x * 1000) / 1000;\nconst r1 = x => (x === null || x === undefined || !Number.isFinite(x)) ? null : Math.round(x * 10) / 10;\nfunction pct(sorted, p) {\n  if (!sorted.length) return null;\n  const idx = (sorted.length - 1) * p, lo = Math.floor(idx), hi = Math.ceil(idx);\n  return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);\n}\nfunction parseRaw(resp) {\n  if (!resp || resp.error || typeof resp.data !== 'string' || !resp.data.length) {\n    const e = resp && resp.error;\n    return { ok: false, error: (e && (e.message || e.description)) || (typeof e === 'string' ? e : 'request failed or empty response') };\n  }\n  try {\n    const j = JSON.parse(resp.data);\n    if (j && j.error === true) return { ok: false, error: j.reason || 'API returned an error' };\n    return { ok: true, json: j, hash: resp.raw_hash };\n  } catch (e) { return { ok: false, error: 'response is not valid JSON' }; }\n}\nfunction tierOf(score) { return score >= RED ? 'red' : (score >= AMBER ? 'amber' : 'green'); } // same rule as src/engine.js\n// Provisional fire-weather day (same definition as src/engine.js): no rain, hot, dry air.\nconst FIRE = { tmaxC: 25, rhMinPct: 35, dryMm: 1 };\nfunction risk(c) { return 100 * (W.R * c.R + W.F * c.F + W.W * c.W + W.V * c.V + W.S * c.S); }\n\n// Count daily events from parallel arrays, split into a baseline span and projection windows\n// rh = daily minimum relative humidity (%), or null when the source has none. Missing inputs give null rates, never zero.\nfunction seriesMetrics(time, pr, tx, tn, sm, rh) {\n  const idxBase = [];\n  for (let i = 0; i < time.length; i++) {\n    const y = Number(time[i].slice(0, 4));\n    if (y >= BASE_START_YEAR && y <= BASE_END_YEAR) idxBase.push(i);\n  }\n  const expectedBase = idxBase.length;\n  const validBase = idxBase.filter(i => Number.isFinite(pr[i]) && Number.isFinite(tx[i]) && Number.isFinite(tn[i]));\n  if (expectedBase < 365 * 10 || validBase.length < 0.95 * expectedBase) return { ok: false, error: 'baseline series incomplete (' + validBase.length + '/' + expectedBase + ' valid days)' };\n  const wet = validBase.map(i => pr[i]).filter(v => v >= 1).sort((a, b) => a - b);\n  const rainP95 = pct(wet, 0.95);\n  const soilVals = sm ? idxBase.map(i => sm[i]).filter(Number.isFinite).sort((a, b) => a - b) : [];\n  const soilOk = sm && soilVals.length >= 0.9 * expectedBase;\n  const soilP90 = soilOk ? pct(soilVals, 0.9) : null;\n  const soilP10 = soilOk ? pct(soilVals, 0.1) : null; // dry-soil day: below the baseline 10th percentile\n  const rhOk = !!rh && idxBase.filter(i => Number.isFinite(rh[i])).length >= 0.9 * expectedBase;\n  function rates(idx) {\n    const n = idx.length; if (!n) return null;\n    const v = idx.filter(i => Number.isFinite(pr[i]) && Number.isFinite(tx[i]) && Number.isFinite(tn[i]));\n    if (v.length < 0.95 * n) return null;\n    const years = v.length / 365.25;\n    const rain = v.filter(i => pr[i] > rainP95).length / years;\n    const ft = v.filter(i => tn[i] < 0 && tx[i] > 0).length / years;\n    let sat = null;\n    if (soilOk) {\n      const vs = idx.filter(i => Number.isFinite(sm[i]));\n      if (vs.length >= 0.9 * n) sat = vs.filter(i => sm[i] > soilP90).length / (vs.length / 365.25);\n    }\n    // Drought inputs: dry-soil days a year, and the mean over years of each year's longest run of days under 1 mm.\n    let dry = null;\n    if (soilOk) {\n      const vs = idx.filter(i => Number.isFinite(sm[i]));\n      if (vs.length >= 0.9 * n) dry = vs.filter(i => sm[i] < soilP10).length / (vs.length / 365.25);\n    }\n    const longest = {}; let run = 0, yr = null;\n    for (const i of idx) {\n      const y = time[i].slice(0, 4);\n      if (y !== yr) { run = 0; yr = y; }\n      run = Number.isFinite(pr[i]) && pr[i] < 1 ? run + 1 : 0;\n      longest[y] = Math.max(longest[y] || 0, run);\n    }\n    const lv = Object.values(longest);\n    const spell = lv.length ? lv.reduce((a, b) => a + b, 0) / lv.length : null;\n    // Wildfire input: fire-weather days a year. Only when this source has humidity for the window.\n    let fire = null;\n    if (rhOk) {\n      const vr = v.filter(i => Number.isFinite(rh[i]));\n      if (vr.length >= 0.9 * n) fire = vr.filter(i => pr[i] < FIRE.dryMm && tx[i] >= FIRE.tmaxC && rh[i] <= FIRE.rhMinPct).length / (vr.length / 365.25);\n    }\n    return { rain, ft, sat, dry, spell, fire };\n  }\n  const base = rates(idxBase);\n  const windows = {};\n  for (const h of HORIZONS) {\n    const idx = [];\n    for (let i = 0; i < time.length; i++) { const y = time[i].slice(0, 4); if (y >= h.start && y <= h.end) idx.push(i); }\n    windows[h.years] = rates(idx);\n  }\n  return { ok: !!base, error: base ? '' : 'baseline rates unavailable', rainP95, soilP90, soilP10, base, windows };\n}\nfunction ratio(proj, base) {\n  if (proj === null || proj === undefined || base === null || base === undefined) return null;\n  return Math.min(3, proj / Math.max(base, 0.1));\n}\n\n\n// ===== Condense CMIP6 projections per fetched cell: per-model ratios vs each model's own 1995-2025 baseline =====\nconst items = $input.all();\nconst prev = $('Condense Archive').all().map(i => i.json);\nconst hashes = $('Hash Archive').all().map(i => (i.json && i.json.raw_hash) || '');\nconst out = [];\nfor (let k = 0; k < items.length; k++) {\n  const it = items[k];\n  // The condensed archive record is the source of truth for the cell; the HTTP item may only carry an error\n  const rec = Object.assign({}, prev[k] || {});\n  rec.raw_hash = hashes[k];\n  // stamp the archive hash produced by the previous Crypto node (fail closed if missing)\n  const archive = Object.assign({}, rec.archive || { ok: false, error: 'no archive result' });\n  if (archive.ok) {\n    if (/^[0-9a-f]{64}$/.test(String(rec.raw_hash || ''))) archive.hash = rec.raw_hash;\n    else { archive.ok = false; archive.error = 'missing SHA-256 of raw archive response'; }\n  }\n  delete rec.raw_hash;\n  const res = { ok: false, error: '', hash: '', models: {} };\n  try {\n    if (!it.binary || !it.binary.data) {\n      const e = it.json && it.json.error;\n      throw new Error((e && (e.message || e.description)) || (typeof e === 'string' ? e : 'request failed or empty response'));\n    }\n    const txt = (await this.helpers.getBinaryDataBuffer(k, 'data')).toString('utf8');\n    const j = JSON.parse(txt);\n    if (j && j.error === true) throw new Error(j.reason || 'API returned an error');\n    const d = j.daily || {};\n    for (const mdl of MODELS) {\n      const m = seriesMetrics(d.time || [], d['precipitation_sum_' + mdl] || [], d['temperature_2m_max_' + mdl] || [], d['temperature_2m_min_' + mdl] || [], d['soil_moisture_0_to_10cm_mean_' + mdl] || null, d['relative_humidity_2m_min_' + mdl] || null);\n      if (!m.ok) { res.models[mdl] = { ok: false, error: m.error }; continue; }\n      const r = { ok: true, ratios: {} };\n      for (const h of HORIZONS) {\n        const w = m.windows[h.years];\n        r.ratios[h.years] = w ? { rain: ratio(w.rain, m.base.rain), ft: ratio(w.ft, m.base.ft), sat: m.base.sat === null ? null : ratio(w.sat, m.base.sat),\n          dry: m.base.dry === null || w.dry === null ? null : ratio(w.dry, m.base.dry),\n          spell: m.base.spell === null || w.spell === null ? null : ratio(w.spell, m.base.spell),\n          fire: m.base.fire === null || w.fire === null ? null : ratio(w.fire, m.base.fire) } : null;\n      }\n      res.models[mdl] = r;\n    }\n    Object.assign(res, { ok: true, fetched_at: new Date().toISOString() });\n  } catch (e) { res.error = String((e && e.message) || e).slice(0, 300); }\n  const json = Object.assign(rec, { archive, climate: res, fetch: false, cache_status: 'fetched' });\n  out.push(it.binary && it.binary.data ? { json, binary: it.binary, pairedItem: { item: k } } : { json, pairedItem: { item: k } });\n}\nreturn out;\n"
+      },
+      "id": "9fede0e8-c082-4cc0-833a-38c12b8a276e",
+      "name": "Condense Climate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4416,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "binaryData": true,
+        "dataPropertyName": "raw_hash"
+      },
+      "id": "c85dae3a-0c50-4129-a2da-1abea9fd0fb5",
+      "name": "Hash Climate",
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 2,
+      "position": [
+        4688,
+        0
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Stamp the climate response hash onto each fetched cell record (fail closed if missing)\nconst prev = $('Condense Climate').all().map(i => i.json);\nreturn $input.all().map((it, k) => {\n  const rec = Object.assign({}, prev[k] || {}, it.json || {});\n  delete rec.error;\n  const climate = Object.assign({}, rec.climate || { ok: false, error: 'no climate result', models: {} });\n  if (climate.ok) {\n    if (/^[0-9a-f]{64}$/.test(String(rec.raw_hash || ''))) climate.hash = rec.raw_hash;\n    else { climate.ok = false; climate.error = 'missing SHA-256 of raw climate response'; }\n  }\n  delete rec.raw_hash;\n  rec.climate = climate;\n  return { json: rec, pairedItem: { item: k } };\n});\n"
+      },
+      "id": "06eb422f-4348-41d7-bb53-7e7b2aed3666",
+      "name": "Finalize Cell Record",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4944,
+        0
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "5dc0fa29-428a-420c-b7fc-bb8d688e4e5b",
+      "name": "Collect Cell Climate",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        5200,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Only fully successful cells go into the cache; failures are retried on the next run\nreturn $input.all().map(i => i.json).filter(r => r.archive && r.archive.ok && r.climate && r.climate.ok).map(r => ({ json: {\n  cell_key: r.cell_key,\n  cell_lat: r.lat,\n  cell_lon: r.lon,\n  config_signature: r.config_signature,\n  archive_hash: r.archive.hash,\n  climate_hash: r.climate.hash,\n  archive_url: r.archive_url,\n  climate_url: r.climate_url,\n  archive_metrics_json: JSON.stringify(r.archive),\n  climate_metrics_json: JSON.stringify(r.climate),\n  fetched_at: new Date().toISOString(),\n} }));\n"
+      },
+      "id": "065a055f-80cd-45a2-8fa0-67e2c2e8e5c3",
+      "name": "Build Cache Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5200,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "7rAbbtFPPAoZJ6jC",
+          "cachedResultName": "ngtl_climate_cells"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "cell_key",
+              "keyValue": "={{ $json.cell_key }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "cell_key": "={{ $json.cell_key }}",
+            "cell_lat": "={{ $json.cell_lat }}",
+            "cell_lon": "={{ $json.cell_lon }}",
+            "config_signature": "={{ $json.config_signature }}",
+            "archive_hash": "={{ $json.archive_hash }}",
+            "climate_hash": "={{ $json.climate_hash }}",
+            "archive_url": "={{ $json.archive_url }}",
+            "climate_url": "={{ $json.climate_url }}",
+            "archive_metrics_json": "={{ $json.archive_metrics_json }}",
+            "climate_metrics_json": "={{ $json.climate_metrics_json }}",
+            "fetched_at": "={{ $json.fetched_at }}"
+          },
+          "schema": [
+            {
+              "id": "cell_key",
+              "displayName": "cell_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "cell_lat",
+              "displayName": "cell_lat",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "cell_lon",
+              "displayName": "cell_lon",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "config_signature",
+              "displayName": "config_signature",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "archive_hash",
+              "displayName": "archive_hash",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "climate_hash",
+              "displayName": "climate_hash",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "archive_url",
+              "displayName": "archive_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "climate_url",
+              "displayName": "climate_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "archive_metrics_json",
+              "displayName": "archive_metrics_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "climate_metrics_json",
+              "displayName": "climate_metrics_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fetched_at",
+              "displayName": "fetched_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f41f5403-9328-4f4d-8021-f0fbc09c68e2",
+      "name": "Save Cell Cache",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        5456,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ===== shared W2 helpers =====\nconst cfg = $('W2 Config').first().json;\nconst now = new Date().toISOString();\nconst MODELS = String(cfg.climate_models).split(',').map(s => s.trim()).filter(Boolean);\nconst W = { R: Number(cfg.weight_r), F: Number(cfg.weight_f), W: Number(cfg.weight_w), V: Number(cfg.weight_v), S: Number(cfg.weight_s) };\nconst RATIO_FULL = Number(cfg.ratio_full_score_increase) || 0.5; // +50% vs baseline => component score 1 (provisional, see docs/THRESHOLDS.md)\nconst NDVI_FULL = Number(cfg.ndvi_drop_full_score) || 0.1;\nconst SLOPE_FULL = Number(cfg.slope_full_score_pct) || 10;\nconst AMBER = Number(cfg.amber_min) || 40, RED = Number(cfg.red_above) || 65;\nconst BASE_END_YEAR = Number(String(cfg.baseline_end).slice(0, 4));\nconst BASE_START_YEAR = Number(String(cfg.baseline_start).slice(0, 4));\nconst HORIZONS = [\n  { years: 5, start: String(cfg.projection_start).slice(0, 4), end: String(Number(String(cfg.projection_start).slice(0, 4)) + 4) },\n  // Non-overlapping: the 10-year view is the second five years only (2031-2035), so it can disagree with the first.\n  { years: 10, start: String(Number(String(cfg.projection_start).slice(0, 4)) + 5), end: String(Number(String(cfg.projection_start).slice(0, 4)) + 9) },\n];\n\nconst clamp01 = x => Math.max(0, Math.min(1, x));\nconst r3 = x => (x === null || x === undefined || !Number.isFinite(x)) ? null : Math.round(x * 1000) / 1000;\nconst r1 = x => (x === null || x === undefined || !Number.isFinite(x)) ? null : Math.round(x * 10) / 10;\nfunction pct(sorted, p) {\n  if (!sorted.length) return null;\n  const idx = (sorted.length - 1) * p, lo = Math.floor(idx), hi = Math.ceil(idx);\n  return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);\n}\nfunction parseRaw(resp) {\n  if (!resp || resp.error || typeof resp.data !== 'string' || !resp.data.length) {\n    const e = resp && resp.error;\n    return { ok: false, error: (e && (e.message || e.description)) || (typeof e === 'string' ? e : 'request failed or empty response') };\n  }\n  try {\n    const j = JSON.parse(resp.data);\n    if (j && j.error === true) return { ok: false, error: j.reason || 'API returned an error' };\n    return { ok: true, json: j, hash: resp.raw_hash };\n  } catch (e) { return { ok: false, error: 'response is not valid JSON' }; }\n}\nfunction tierOf(score) { return score >= RED ? 'red' : (score >= AMBER ? 'amber' : 'green'); } // same rule as src/engine.js\n// Provisional fire-weather day (same definition as src/engine.js): no rain, hot, dry air.\nconst FIRE = { tmaxC: 25, rhMinPct: 35, dryMm: 1 };\nfunction risk(c) { return 100 * (W.R * c.R + W.F * c.F + W.W * c.W + W.V * c.V + W.S * c.S); }\n\n// Count daily events from parallel arrays, split into a baseline span and projection windows\n// rh = daily minimum relative humidity (%), or null when the source has none. Missing inputs give null rates, never zero.\nfunction seriesMetrics(time, pr, tx, tn, sm, rh) {\n  const idxBase = [];\n  for (let i = 0; i < time.length; i++) {\n    const y = Number(time[i].slice(0, 4));\n    if (y >= BASE_START_YEAR && y <= BASE_END_YEAR) idxBase.push(i);\n  }\n  const expectedBase = idxBase.length;\n  const validBase = idxBase.filter(i => Number.isFinite(pr[i]) && Number.isFinite(tx[i]) && Number.isFinite(tn[i]));\n  if (expectedBase < 365 * 10 || validBase.length < 0.95 * expectedBase) return { ok: false, error: 'baseline series incomplete (' + validBase.length + '/' + expectedBase + ' valid days)' };\n  const wet = validBase.map(i => pr[i]).filter(v => v >= 1).sort((a, b) => a - b);\n  const rainP95 = pct(wet, 0.95);\n  const soilVals = sm ? idxBase.map(i => sm[i]).filter(Number.isFinite).sort((a, b) => a - b) : [];\n  const soilOk = sm && soilVals.length >= 0.9 * expectedBase;\n  const soilP90 = soilOk ? pct(soilVals, 0.9) : null;\n  const soilP10 = soilOk ? pct(soilVals, 0.1) : null; // dry-soil day: below the baseline 10th percentile\n  const rhOk = !!rh && idxBase.filter(i => Number.isFinite(rh[i])).length >= 0.9 * expectedBase;\n  function rates(idx) {\n    const n = idx.length; if (!n) return null;\n    const v = idx.filter(i => Number.isFinite(pr[i]) && Number.isFinite(tx[i]) && Number.isFinite(tn[i]));\n    if (v.length < 0.95 * n) return null;\n    const years = v.length / 365.25;\n    const rain = v.filter(i => pr[i] > rainP95).length / years;\n    const ft = v.filter(i => tn[i] < 0 && tx[i] > 0).length / years;\n    let sat = null;\n    if (soilOk) {\n      const vs = idx.filter(i => Number.isFinite(sm[i]));\n      if (vs.length >= 0.9 * n) sat = vs.filter(i => sm[i] > soilP90).length / (vs.length / 365.25);\n    }\n    // Drought inputs: dry-soil days a year, and the mean over years of each year's longest run of days under 1 mm.\n    let dry = null;\n    if (soilOk) {\n      const vs = idx.filter(i => Number.isFinite(sm[i]));\n      if (vs.length >= 0.9 * n) dry = vs.filter(i => sm[i] < soilP10).length / (vs.length / 365.25);\n    }\n    const longest = {}; let run = 0, yr = null;\n    for (const i of idx) {\n      const y = time[i].slice(0, 4);\n      if (y !== yr) { run = 0; yr = y; }\n      run = Number.isFinite(pr[i]) && pr[i] < 1 ? run + 1 : 0;\n      longest[y] = Math.max(longest[y] || 0, run);\n    }\n    const lv = Object.values(longest);\n    const spell = lv.length ? lv.reduce((a, b) => a + b, 0) / lv.length : null;\n    // Wildfire input: fire-weather days a year. Only when this source has humidity for the window.\n    let fire = null;\n    if (rhOk) {\n      const vr = v.filter(i => Number.isFinite(rh[i]));\n      if (vr.length >= 0.9 * n) fire = vr.filter(i => pr[i] < FIRE.dryMm && tx[i] >= FIRE.tmaxC && rh[i] <= FIRE.rhMinPct).length / (vr.length / 365.25);\n    }\n    return { rain, ft, sat, dry, spell, fire };\n  }\n  const base = rates(idxBase);\n  const windows = {};\n  for (const h of HORIZONS) {\n    const idx = [];\n    for (let i = 0; i < time.length; i++) { const y = time[i].slice(0, 4); if (y >= h.start && y <= h.end) idx.push(i); }\n    windows[h.years] = rates(idx);\n  }\n  return { ok: !!base, error: base ? '' : 'baseline rates unavailable', rainP95, soilP90, soilP10, base, windows };\n}\nfunction ratio(proj, base) {\n  if (proj === null || proj === undefined || base === null || base === undefined) return null;\n  return Math.min(3, proj / Math.max(base, 0.1));\n}\n\n\n// ===== W2: deterministic risk scoring (fail-closed) =====\n// Ground failure = 100 * (0.35R + 0.20F + 0.15W + 0.20V + 0.10S).\n// River crossing, wildfire weather and drought are scored on their own (same rules as src/engine.js).\n// The segment's risk_score and tier are its WORST hazard, never a blend. A hazard with no input data is left out\n// and its reason is recorded in hazards_json.status; it is never scored as zero.\nconst HAZ_W = { drought: { drySoil: 0.6, drySpell: 0.4 }, wildfire: { change: 0.5, level: 0.4, fuel: 0.1 }, crossing: { size: 0.4, rain: 0.35, flow: 0.25 } };\nconst FIRE_DAYS_FULL = 20, PEAK_FLOW_FULL = 200, CROSSING_SIZE = { river: 1, canal: 0.6, stream: 0.4, drain: 0.3 };\nfunction weighted(f, wts) { let s = 0, w = 0; for (const k of Object.keys(wts)) if (f[k] !== null && f[k] !== undefined) { s += wts[k] * f[k]; w += wts[k]; } return w ? Math.round(1000 * s / w) / 10 : null; }\nconst sgn = x => (x > 0 ? '+' : '') + x;\nconst pctInt = x => (x === null || x === undefined) ? null : Math.round((x - 1) * 100);\nconst segs = $('Select Batch Segments').all().map(i => i.json);\nconst ndviResp = $('Hash NDVI').all().map(i => i.json);\nconst elevResp = $('Hash Elevation').all().map(i => i.json);\nconst cellRecords = $input.all().map(i => i.json).filter(r => r && r.cell_key);\n\nconst cellInfo = {};\nconst sourceRows = [];\nfor (const rec of cellRecords) {\n  const a = rec.archive || { ok: false, error: 'no archive result' };\n  const c = rec.climate || { ok: false, error: 'no climate result', models: {} };\n  if (rec.cache_status === 'fetched') {\n    sourceRows.push({ source_kind: 'open_meteo_archive', source_url: rec.archive_url, source_hash: a.ok ? a.hash : '', batch_status: a.ok ? 'verified' : 'failed', error_message: a.ok ? '' : a.error });\n    sourceRows.push({ source_kind: 'open_meteo_climate', source_url: rec.climate_url, source_hash: c.ok ? c.hash : '', batch_status: c.ok ? 'verified' : 'failed', error_message: c.ok ? '' : c.error });\n  }\n  const info = cellInfo[rec.cell_key] = { errors: [], models: {}, cache_status: rec.cache_status };\n  if (a.ok) { info.archive = a; info.archive_hash = a.hash; } else info.errors.push('archive: ' + a.error);\n  if (c.ok) { info.models = c.models || {}; info.climate_hash = c.hash; } else info.errors.push('climate: ' + c.error);\n}\n\n// ---- NDVI growing-season trend ----\nfunction ndviFromStats(j) {\n  const series = [];\n  for (const iv of (j && j.data) || []) {\n    if (iv.error) continue;\n    const st = iv.outputs && iv.outputs.ndvi && iv.outputs.ndvi.bands && iv.outputs.ndvi.bands.B0 && iv.outputs.ndvi.bands.B0.stats;\n    if (!st || !Number.isFinite(st.mean) || !(st.sampleCount > 0)) continue;\n    const validFrac = (st.sampleCount - (st.noDataCount || 0)) / st.sampleCount;\n    if (validFrac < 0.2) continue;\n    series.push({ month: String(iv.interval.from).slice(0, 7), mean: r3(st.mean), valid_frac: r3(validFrac) });\n  }\n  return series;\n}\nfunction ndviTrend(series) {\n  const byYear = {};\n  for (const p of series) {\n    const mo = Number(p.month.slice(5, 7));\n    if (mo < 5 || mo > 9) continue;\n    (byYear[p.month.slice(0, 4)] = byYear[p.month.slice(0, 4)] || []).push(p.mean);\n  }\n  const pts = Object.keys(byYear).filter(y => byYear[y].length >= 2).sort().map(y => ({ x: Number(y), y: byYear[y].reduce((a, b) => a + b, 0) / byYear[y].length }));\n  if (pts.length < 4) return { ok: false, error: 'NDVI: fewer than 4 growing seasons with cloud-free data' };\n  const mx = pts.reduce((a, p) => a + p.x, 0) / pts.length, my = pts.reduce((a, p) => a + p.y, 0) / pts.length;\n  const slope = pts.reduce((a, p) => a + (p.x - mx) * (p.y - my), 0) / pts.reduce((a, p) => a + (p.x - mx) ** 2, 0);\n  const span = pts[pts.length - 1].x - pts[0].x;\n  return { ok: true, slope, drop: Math.max(0, -slope * span), years: pts.map(p => p.x) };\n}\n\nconst out = [];\nsegs.forEach((s, i) => {\n  const errors = (s.validation_errors || []).slice();\n  // Elevation / slope\n  const e = parseRaw(elevResp[i]);\n  sourceRows.push({ source_kind: 'open_meteo_elevation', source_url: s.elevation_url, source_hash: e.ok ? e.hash : '', batch_status: e.ok ? 'verified' : 'failed', error_message: e.ok ? '' : e.error });\n  let elev0 = null, elev1 = null, slopePct = null;\n  if (e.ok && Array.isArray(e.json.elevation) && e.json.elevation.length === 2 && e.json.elevation.every(Number.isFinite) && s.length_m > 0) {\n    elev0 = e.json.elevation[0]; elev1 = e.json.elevation[1];\n    slopePct = Math.abs(elev1 - elev0) / s.length_m * 100;\n  } else errors.push('elevation: ' + (e.ok ? 'unexpected response shape' : e.error));\n\n  // NDVI (live -> cached previous live series -> unverified)\n  const n = parseRaw(ndviResp[i]);\n  sourceRows.push({ source_kind: 'cdse_sentinel2_ndvi', source_url: cfg.ndvi_url + '#' + s.segment_id, source_hash: n.ok ? n.hash : '', batch_status: n.ok ? 'verified' : 'failed', error_message: n.ok ? '' : n.error });\n  let series = null, ndviSource = '', ndviHash = '', trend = null;\n  if (n.ok) {\n    series = ndviFromStats(n.json); trend = ndviTrend(series);\n    if (trend.ok) { ndviSource = 'cdse_live'; ndviHash = n.hash; }\n  }\n  if ((!trend || !trend.ok) && s.prior_ndvi_series_json) {\n    try {\n      const cached = JSON.parse(s.prior_ndvi_series_json);\n      const t2 = ndviTrend(cached);\n      if (t2.ok) { series = cached; trend = t2; ndviSource = s.prior_ndvi_source || 'cache_previous_live'; ndviHash = s.prior_ndvi_hash; }\n    } catch (err) { /* ignore broken cache */ }\n  }\n  if (!trend || !trend.ok) errors.push(n.ok ? (trend ? trend.error : 'NDVI: no data') : 'NDVI: ' + n.error + ' and no cached series');\n\n  const cell = cellInfo[s.cell_key] || { errors: ['no climate data for cell ' + s.cell_key], models: {} };\n  if (!s.valid) { /* validation errors already listed */ } else errors.push(...cell.errors);\n  const arch = cell.archive;\n\n  const V = trend && trend.ok ? clamp01(trend.drop / NDVI_FULL) : null;\n  const S = slopePct !== null ? clamp01(slopePct / SLOPE_FULL) : null;\n  const baselineStatusOk = errors.length === 0;\n\n  const baselineRow = {\n    segment_id: s.segment_id, corridor_id: s.corridor_id, cell_key: s.cell_key,\n    centroid_lat: s.centroid_lat, centroid_lon: s.centroid_lon,\n    baseline_period: cfg.baseline_start.slice(0, 4) + '-' + cfg.baseline_end.slice(0, 4),\n    rain_p95_mm: arch ? r1(arch.rainP95) : null,\n    extreme_rain_days_per_yr: arch ? r1(arch.base.rain) : null,\n    freeze_thaw_days_per_yr: arch ? r1(arch.base.ft) : null,\n    soil_p90_m3m3: arch ? r3(arch.soilP90) : null,\n    saturation_days_per_yr: arch ? r1(arch.base.sat) : null,\n    ndvi_series_json: series ? JSON.stringify(series) : '',\n    ndvi_source: ndviSource || 'unavailable',\n    ndvi_slope_per_yr: trend && trend.ok ? Math.round(trend.slope * 10000) / 10000 : null,\n    ndvi_drop_5yr: trend && trend.ok ? r3(trend.drop) : null,\n    elevation_start_m: elev0, elevation_end_m: elev1, slope_pct: r3(slopePct),\n    archive_hash: cell.archive_hash || '', climate_hash: cell.climate_hash || '',\n    ndvi_hash: ndviHash, elevation_hash: e.ok ? e.hash : '',\n    status: baselineStatusOk ? 'verified' : 'unverified',\n    error_message: errors.join('; '),\n    computed_at: now,\n  };\n\n  HORIZONS.forEach(h => {\n    const hErrors = errors.slice();\n    const perModel = {};\n    const okModels = MODELS.filter(m => cell.models[m] && cell.models[m].ok && cell.models[m].ratios[h.years]);\n    if (okModels.length < 2) hErrors.push('climate: fewer than 2 of 3 CMIP6 models usable for ' + h.years + '-yr window');\n    const mean = arr => arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;\n    const rr = mean(okModels.map(m => cell.models[m].ratios[h.years].rain).filter(Number.isFinite));\n    const fr = mean(okModels.map(m => cell.models[m].ratios[h.years].ft).filter(Number.isFinite));\n    const sr = mean(okModels.map(m => cell.models[m].ratios[h.years].sat).filter(Number.isFinite));\n    const dryR = mean(okModels.map(m => cell.models[m].ratios[h.years].dry).filter(Number.isFinite));\n    const spellR = mean(okModels.map(m => cell.models[m].ratios[h.years].spell).filter(Number.isFinite));\n    const fireModels = okModels.filter(m => Number.isFinite(cell.models[m].ratios[h.years].fire));\n    const fireR = mean(fireModels.map(m => cell.models[m].ratios[h.years].fire));\n    if (sr === null) hErrors.push('climate: no model provided soil moisture');\n    const comp = (x) => x === null ? null : clamp01((x - 1) / RATIO_FULL);\n    const C = { R: comp(rr), F: comp(fr), W: comp(sr), V, S };\n    const complete = hErrors.length === 0 && Object.values(C).every(v => v !== null);\n\n    let score = null, tier = 'unverified', agreement = '', groundScore = null, topKey = '', hazardsJson = '';\n    if (complete) {\n      groundScore = Math.round(risk(C) * 10) / 10;\n      score = groundScore;\n      tier = tierOf(score);\n      const tiers = [];\n      for (const m of okModels) {\n        const rt = cell.models[m].ratios[h.years];\n        const cm = { R: comp(rt.rain), F: comp(rt.ft), W: rt.sat === null ? C.W : comp(rt.sat), V, S };\n        const sc = Math.round(risk(cm) * 10) / 10;\n        perModel[m] = { score: sc, tier: tierOf(sc), rain_ratio: r3(rt.rain), freeze_thaw_ratio: r3(rt.ft), saturation_ratio: r3(rt.sat), soil_from_ensemble: rt.sat === null };\n        tiers.push(tierOf(sc));\n      }\n      const counts = {}; tiers.forEach(t => counts[t] = (counts[t] || 0) + 1);\n      const maxAgree = Math.max(...Object.values(counts));\n      agreement = (maxAgree === MODELS.length && okModels.length === MODELS.length) ? 'high' : (maxAgree >= 2 ? 'medium' : 'low');\n    }\n    if (complete) {\n      const ab = (arch && arch.base) || {};\n      const hz = {}, status = {};\n      const drvs = [['Extreme-rain days', pctInt(rr), W.R * C.R], ['Freeze-thaw days', pctInt(fr), W.F * C.F], ['Wet-soil days', pctInt(sr), W.W * C.W]].sort((a, b) => b[2] - a[2]);\n      const localTop = W.V * C.V >= W.S * C.S ? 'Plant cover -' + r3(trend.drop) + ' NDVI in 5 years' : 'Slope ' + r1(slopePct) + '%';\n      hz.ground = { key: 'ground', label: 'Ground failure', score: groundScore,\n        why: drvs[0][2] > Math.max(W.V * C.V, W.S * C.S) ? drvs[0][0] + ' ' + sgn(drvs[0][1]) + '%' : (Math.max(W.V * C.V, W.S * C.S) > 0 ? localTop : 'No change from baseline') };\n      status.ground = 'scored';\n      // Drought\n      const fD = { drySoil: comp(dryR), drySpell: comp(spellR) };\n      const dS = weighted(fD, HAZ_W.drought);\n      if (dS === null) status.drought = 'unavailable: ' + (!Number.isFinite(ab.spell) ? 'this cell was cached before dry-soil and dry-spell metrics were added, refetch it' : 'no climate model provided soil moisture or rain for this window');\n      else {\n        const pSoil = pctInt(dryR), pSpell = pctInt(spellR);\n        hz.drought = { key: 'drought', label: 'Drought', score: dS, factors: fD,\n          why: pSoil !== null && (pSpell === null || Math.abs(pSoil) >= Math.abs(pSpell)) ? 'Dry-soil days ' + sgn(pSoil) + '%' : 'Longest dry spell ' + sgn(pSpell) + '%',\n          change: { drySoil: pSoil, drySpell: pSpell },\n          base: { drySoilDaysPerYr: r1(ab.dry), drySpellDays: r1(ab.spell) },\n          proj: { drySoilDaysPerYr: dryR !== null && Number.isFinite(ab.dry) ? r1(dryR * ab.dry) : null, drySpellDays: spellR !== null && Number.isFinite(ab.spell) ? r1(spellR * ab.spell) : null } };\n        status.drought = dryR === null ? 'scored on dry spells only: no model soil moisture' : 'scored';\n      }\n      // Wildfire weather\n      if (fireR === null || !Number.isFinite(ab.fire)) status.wildfire = 'unavailable: ' + (!Number.isFinite(ab.fire) ? 'no observed humidity in the cached baseline' : 'no climate model provided humidity for this window');\n      else {\n        const projF = fireR * ab.fire;\n        const nm = (series || []).map(p => p.mean).filter(Number.isFinite);\n        const ndviMean = nm.length ? nm.reduce((a, b) => a + b, 0) / nm.length : null;\n        const fF = { change: clamp01((fireR - 1) / 2), level: clamp01(projF / FIRE_DAYS_FULL), fuel: ndviMean === null ? null : clamp01((ndviMean - 0.3) / 0.4) };\n        hz.wildfire = { key: 'wildfire', label: 'Wildfire weather', score: weighted(fF, HAZ_W.wildfire), factors: fF,\n          why: 'Fire-weather days ' + r1(ab.fire) + ' to ' + r1(projF) + ' a year (' + sgn(pctInt(fireR)) + '%)',\n          change: { fireDays: pctInt(fireR) }, base: { fireWeatherDaysPerYr: r1(ab.fire) }, proj: { fireWeatherDaysPerYr: r1(projF) },\n          fuelNdvi: ndviMean === null ? null : Math.round(ndviMean * 100) / 100, models_with_humidity: fireModels.length };\n        status.wildfire = 'scored (' + fireModels.length + ' of ' + okModels.length + ' models have humidity)';\n      }\n      // River crossing: only where a mapped waterway crosses the centreline\n      let xs = null;\n      if (s.crossings_json !== null && s.crossings_json !== undefined) { try { const p = JSON.parse(s.crossings_json); if (Array.isArray(p)) xs = p; } catch (err) { xs = null; } }\n      if (xs === null) status.crossing = 'not checked: no waterway map loaded for this segment';\n      else if (!xs.length) status.crossing = 'not applicable: no mapped waterway crosses this segment';\n      else {\n        const size = Math.max(...xs.map(x => CROSSING_SIZE[x.kind] !== undefined ? CROSSING_SIZE[x.kind] : 0.4));\n        const flows = xs.map(x => x.peakFlowM3s).filter(Number.isFinite);\n        const peak = flows.length ? Math.max(...flows) : null;\n        const fX = { size, rain: C.R, flow: peak === null ? null : clamp01(peak / PEAK_FLOW_FULL) };\n        const big = xs.reduce((a, x) => ((CROSSING_SIZE[x.kind] || 0) > (CROSSING_SIZE[a.kind] || 0) ? x : a), xs[0]);\n        hz.crossing = { key: 'crossing', label: 'River crossing', score: weighted(fX, HAZ_W.crossing), factors: fX,\n          why: 'Crosses ' + (big.name || 'a ' + big.kind) + (peak !== null ? ' (peak flow ' + Math.round(peak) + ' m³/s)' : '') + ', heavy rain ' + sgn(pctInt(rr)) + '%',\n          crossings: xs.map(x => ({ name: x.name || null, kind: x.kind, peakFlowM3s: Number.isFinite(x.peakFlowM3s) ? x.peakFlowM3s : null, at: x.at || null })) };\n        status.crossing = peak === null ? 'scored without river flow: no discharge data at the crossing' : 'scored';\n      }\n      let top = hz.ground;\n      for (const k of Object.keys(hz)) { hz[k].tier = tierOf(hz[k].score); if (hz[k].score > top.score) top = hz[k]; }\n      score = top.score; tier = tierOf(score); topKey = top.key;\n      hazardsJson = JSON.stringify({ top: topKey, ground_score: groundScore, hazards: hz, status,\n        base: { drySoilDaysPerYr: r1(ab.dry), drySpellDays: r1(ab.spell), fireWeatherDaysPerYr: r1(ab.fire) },\n        crossings: xs, ratio_full: RATIO_FULL, tiers: { amber: AMBER, red: RED } });\n    }\n    const pctTxt = x => x === null ? 'n/a' : ((x >= 1 ? '+' : '') + Math.round((x - 1) * 100) + '%');\n    const facts = complete ? [\n      'Segment ' + s.segment_index + ' (' + s.segment_id + '), ' + h.years + '-year horizon ' + h.start + '-' + h.end + ':',\n      'risk score ' + score + '/100 (' + tier + '), set by the worst hazard: ' + topKey + '. Ground-failure score ' + groundScore + '. CMIP6 model agreement ' + agreement + '.',\n      'Extreme rain days ' + pctTxt(rr) + ' vs ' + baselineRow.baseline_period + ' baseline;',\n      'freeze-thaw days ' + pctTxt(fr) + ';',\n      'soil saturation days ' + pctTxt(sr) + ';',\n      'Sentinel-2 growing-season NDVI drop ' + r3(trend.drop) + ' over ' + trend.years[0] + '-' + trend.years[trend.years.length - 1] + ';',\n      'terrain slope ' + r1(slopePct) + '%.',\n    ].join(' ') : '';\n\n    out.push({ json: {\n      prediction_id: s.segment_id + '_h' + h.years,\n      segment_id: s.segment_id,\n      corridor_id: s.corridor_id,\n      segment_index: s.segment_index,\n      horizon_years: h.years,\n      window_start: h.start + '-01-01',\n      window_end: h.end + '-12-31',\n      risk_score: score,\n      tier,\n      hazard: topKey,\n      ground_score: groundScore,\n      hazards_json: hazardsJson,\n      model_agreement: agreement,\n      score_r: r3(C.R), score_f: r3(C.F), score_w: r3(C.W), score_v: r3(C.V), score_s: r3(C.S),\n      rain_ratio: r3(rr), freeze_thaw_ratio: r3(fr), saturation_ratio: r3(sr),\n      model_scores_json: JSON.stringify(perModel),\n      explanation: '',\n      needs_explanation: tier === 'amber' || tier === 'red',\n      explain_facts: facts,\n      archive_hash: cell.archive_hash || '', climate_hash: cell.climate_hash || '',\n      ndvi_hash: ndviHash, elevation_hash: e.ok ? e.hash : '',\n      segment_source_hash: s.segment_source_hash,\n      status: complete ? 'verified' : 'unverified',\n      error_message: hErrors.join('; '),\n      computed_at: now,\n      baseline_row: h.years === 5 ? baselineRow : null,\n    } });\n  });\n});\n\n// Attach provenance rows to the first item (logged once by the audit branch)\nconst seen = new Set();\nconst srcRows = sourceRows.filter(r => { const k = r.source_kind + '|' + r.source_url; if (seen.has(k)) return false; seen.add(k); return true; })\n  .map(r => Object.assign({ corridor_id: cfg.corridor_id, fetched_at: now, segment_count: segs.length, fallback_reason: r.source_kind === 'cdse_sentinel2_ndvi' && r.batch_status === 'failed' ? 'live NDVI failed; previous live series used if cached, else segment unverified' : '' }, r));\nif (out.length) out[0].json.source_rows = srcRows;\nreturn out;\n"
+      },
+      "id": "b2b3a629-0d03-4f5d-bad8-64211d46355c",
+      "name": "Score Segments",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5456,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.needs_explanation }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4e2bdee0-455b-426f-9cdc-8172dc7a4594",
+      "name": "Amber or Red?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        5728,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "id": "42f920d6-da1b-4931-b8ec-f2afd117a3d9",
+      "name": "Attach Explanation",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        6240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Write the dashboard explanation for this pipeline corridor segment.\n\nMetrics:\n{{ $json.explain_facts }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You explain pipeline corridor climate risk to field engineers. Output exactly two plain-language sentences and nothing else. Cite the exact numbers you are given (percent changes, NDVI drop, slope, score). Name the biggest drivers first. Do not invent numbers, causes, locations, or recommendations that are not supported by the metrics. No headings, lists, or markdown."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "id": "2203b6f8-a03b-42a2-bb53-20108c4efce7",
+      "name": "Explain Risk",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        5984,
+        0
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "ZI6kdrxJeRhkLi0t",
+          "cachedResultName": "ngtl_predictions"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "prediction_id",
+              "keyValue": "={{ $json.prediction_id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "prediction_id": "={{ $json.prediction_id }}",
+            "segment_id": "={{ $json.segment_id }}",
+            "corridor_id": "={{ $json.corridor_id }}",
+            "segment_index": "={{ $json.segment_index }}",
+            "horizon_years": "={{ $json.horizon_years }}",
+            "window_start": "={{ $json.window_start }}",
+            "window_end": "={{ $json.window_end }}",
+            "risk_score": "={{ $json.risk_score }}",
+            "tier": "={{ $json.tier }}",
+            "model_agreement": "={{ $json.model_agreement }}",
+            "score_r": "={{ $json.score_r }}",
+            "score_f": "={{ $json.score_f }}",
+            "score_w": "={{ $json.score_w }}",
+            "score_v": "={{ $json.score_v }}",
+            "score_s": "={{ $json.score_s }}",
+            "rain_ratio": "={{ $json.rain_ratio }}",
+            "freeze_thaw_ratio": "={{ $json.freeze_thaw_ratio }}",
+            "saturation_ratio": "={{ $json.saturation_ratio }}",
+            "model_scores_json": "={{ $json.model_scores_json }}",
+            "explanation": "={{ String($json.text || $json.explanation || '').trim() }}",
+            "archive_hash": "={{ $json.archive_hash }}",
+            "climate_hash": "={{ $json.climate_hash }}",
+            "ndvi_hash": "={{ $json.ndvi_hash }}",
+            "elevation_hash": "={{ $json.elevation_hash }}",
+            "segment_source_hash": "={{ $json.segment_source_hash }}",
+            "status": "={{ $json.status }}",
+            "error_message": "={{ $json.error_message }}",
+            "computed_at": "={{ $json.computed_at }}",
+            "hazard": "={{ $json.hazard }}",
+            "ground_score": "={{ $json.ground_score }}",
+            "hazards_json": "={{ $json.hazards_json }}"
+          },
+          "schema": [
+            {
+              "id": "prediction_id",
+              "displayName": "prediction_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "segment_id",
+              "displayName": "segment_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "corridor_id",
+              "displayName": "corridor_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "segment_index",
+              "displayName": "segment_index",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "horizon_years",
+              "displayName": "horizon_years",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "window_start",
+              "displayName": "window_start",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "window_end",
+              "displayName": "window_end",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "risk_score",
+              "displayName": "risk_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "tier",
+              "displayName": "tier",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "model_agreement",
+              "displayName": "model_agreement",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "score_r",
+              "displayName": "score_r",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "score_f",
+              "displayName": "score_f",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "score_w",
+              "displayName": "score_w",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "score_v",
+              "displayName": "score_v",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "score_s",
+              "displayName": "score_s",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rain_ratio",
+              "displayName": "rain_ratio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "freeze_thaw_ratio",
+              "displayName": "freeze_thaw_ratio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "saturation_ratio",
+              "displayName": "saturation_ratio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "model_scores_json",
+              "displayName": "model_scores_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "explanation",
+              "displayName": "explanation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "archive_hash",
+              "displayName": "archive_hash",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "climate_hash",
+              "displayName": "climate_hash",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ndvi_hash",
+              "displayName": "ndvi_hash",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "elevation_hash",
+              "displayName": "elevation_hash",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "segment_source_hash",
+              "displayName": "segment_source_hash",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "computed_at",
+              "displayName": "computed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "hazard",
+              "displayName": "hazard",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ground_score",
+              "displayName": "ground_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "hazards_json",
+              "displayName": "hazards_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "08bb65de-1540-479f-a54e-3cfc35a85e3d",
+      "name": "Upsert Predictions",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        6496,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().filter(i => i.json.baseline_row).map(i => ({ json: i.json.baseline_row }));"
+      },
+      "id": "e7769ef7-e937-40de-aae2-5dedcf8e5b60",
+      "name": "Build Baseline Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5728,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "ZTaX6AEU5LB1jjMD",
+          "cachedResultName": "ngtl_baselines"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "segment_id",
+              "keyValue": "={{ $json.segment_id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "segment_id": "={{ $json.segment_id }}",
+            "corridor_id": "={{ $json.corridor_id }}",
+            "cell_key": "={{ $json.cell_key }}",
+            "centroid_lat": "={{ $json.centroid_lat }}",
+            "centroid_lon": "={{ $json.centroid_lon }}",
+            "baseline_period": "={{ $json.baseline_period }}",
+            "rain_p95_mm": "={{ $json.rain_p95_mm }}",
+            "extreme_rain_days_per_yr": "={{ $json.extreme_rain_days_per_yr }}",
+            "freeze_thaw_days_per_yr": "={{ $json.freeze_thaw_days_per_yr }}",
+            "soil_p90_m3m3": "={{ $json.soil_p90_m3m3 }}",
+            "saturation_days_per_yr": "={{ $json.saturation_days_per_yr }}",
+            "ndvi_series_json": "={{ $json.ndvi_series_json }}",
+            "ndvi_source": "={{ $json.ndvi_source }}",
+            "ndvi_slope_per_yr": "={{ $json.ndvi_slope_per_yr }}",
+            "ndvi_drop_5yr": "={{ $json.ndvi_drop_5yr }}",
+            "elevation_start_m": "={{ $json.elevation_start_m }}",
+            "elevation_end_m": "={{ $json.elevation_end_m }}",
+            "slope_pct": "={{ $json.slope_pct }}",
+            "archive_hash": "={{ $json.archive_hash }}",
+            "climate_hash": "={{ $json.climate_hash }}",
+            "ndvi_hash": "={{ $json.ndvi_hash }}",
+            "elevation_hash": "={{ $json.elevation_hash }}",
+            "status": "={{ $json.status }}",
+            "error_message": "={{ $json.error_message }}",
+            "computed_at": "={{ $json.computed_at }}"
+          },
+          "schema": [
+            {
+              "id": "segment_id",
+              "displayName": "segment_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "corridor_id",
+              "displayName": "corridor_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "cell_key",
+              "displayName": "cell_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "centroid_lat",
+              "displayName": "centroid_lat",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "centroid_lon",
+              "displayName": "centroid_lon",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "baseline_period",
+              "displayName": "baseline_period",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rain_p95_mm",
+              "displayName": "rain_p95_mm",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "extreme_rain_days_per_yr",
+              "displayName": "extreme_rain_days_per_yr",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "freeze_thaw_days_per_yr",
+              "displayName": "freeze_thaw_days_per_yr",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "soil_p90_m3m3",
+              "displayName": "soil_p90_m3m3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "saturation_days_per_yr",
+              "displayName": "saturation_days_per_yr",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ndvi_series_json",
+              "displayName": "ndvi_series_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ndvi_source",
+              "displayName": "ndvi_source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ndvi_slope_per_yr",
+              "displayName": "ndvi_slope_per_yr",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ndvi_drop_5yr",
+              "displayName": "ndvi_drop_5yr",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "elevation_start_m",
+              "displayName": "elevation_start_m",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "elevation_end_m",
+              "displayName": "elevation_end_m",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "slope_pct",
+              "displayName": "slope_pct",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "archive_hash",
+              "displayName": "archive_hash",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "climate_hash",
+              "displayName": "climate_hash",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ndvi_hash",
+              "displayName": "ndvi_hash",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "elevation_hash",
+              "displayName": "elevation_hash",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "computed_at",
+              "displayName": "computed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2e862986-528d-49d2-a976-b3214e95a1ab",
+      "name": "Upsert Baselines",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        5984,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return ($('Score Segments').first().json.source_rows || []).map(r => ({ json: r }));"
+      },
+      "id": "6d64072e-3856-4e81-96ce-2f7947d0dfd0",
+      "name": "Build Source Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6240,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "pKGFtBvarPgjHcM2",
+          "cachedResultName": "ngtl_sources"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "source_hash": "={{ $json.source_hash }}",
+            "source_url": "={{ $json.source_url }}",
+            "source_kind": "={{ $json.source_kind }}",
+            "fetched_at": "={{ $json.fetched_at }}",
+            "corridor_id": "={{ $json.corridor_id }}",
+            "batch_status": "={{ $json.batch_status }}",
+            "segment_count": "={{ $json.segment_count }}",
+            "error_message": "={{ $json.error_message }}",
+            "fallback_reason": "={{ $json.fallback_reason }}"
+          },
+          "schema": [
+            {
+              "id": "source_hash",
+              "displayName": "source_hash",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source_url",
+              "displayName": "source_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source_kind",
+              "displayName": "source_kind",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fetched_at",
+              "displayName": "fetched_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "corridor_id",
+              "displayName": "corridor_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "batch_status",
+              "displayName": "batch_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "segment_count",
+              "displayName": "segment_count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fallback_reason",
+              "displayName": "fallback_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c81ad2b4-6e34-4f00-b24d-50673a54d961",
+      "name": "Log Source Hashes",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        6496,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        5984,
+        176
+      ],
+      "id": "281ec88a-44cf-4820-a871-52a39de4e378",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Y6jytyquvr05V31h",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## W2 Long-range geohazard engine\nScores every kilometre 0 to 100 for ground, crossings, wildfire weather and drought for 2026 to 2030 and 2031 to 2035. Gemini explains amber and red segments only; the score itself is plain code.\n\n**Trigger:** Called by v2 · W1, and weekly\n**Reads:** corridor_segments, corridor_climate_cells cache, Sentinel-2 NDVI (Copernicus), elevation\n**Writes:** corridor_baselines, corridor_predictions, corridor_sources\n**Next:** Feeds WF3 and the API feed\n\n**Climate comes only from the cache.** Open-Meteo's archive and CMIP6 APIs block n8n Cloud (HTTP 429), so W2 Config has max_cell_fetches_per_run = 0. A grid cell with no current (v3) cache row is marked unverified. Fill it from a laptop: node scripts/fetch-climate-cells.js <cell_key>, then load the rows into corridor_climate_cells. As of Nov 21 all 23 ab-strathcona-demo segments sit in the 4 cached cells.\n\nPart of the v2 set. Hackathon originals are untouched. Source of truth: github.com/katiescase/terracorridor/workflows. Change the repo and re-import, do not hand-edit.",
+        "height": 300,
+        "width": 1100,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        -352
+      ],
+      "id": "9745b743-0760-4945-b292-4f6e55596690",
+      "name": "About this workflow"
+    }
+  ],
+  "connections": {
+    "From W1 Corridor Setup": {
+      "main": [
+        [
+          {
+            "node": "W2 Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "W2 Config": {
+      "main": [
+        [
+          {
+            "node": "Get Segments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weekly Rescore": {
+      "main": [
+        [
+          {
+            "node": "W2 Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Segments": {
+      "main": [
+        [
+          {
+            "node": "Get Prior Baselines",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Prior Baselines": {
+      "main": [
+        [
+          {
+            "node": "Select Batch Segments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select Batch Segments": {
+      "main": [
+        [
+          {
+            "node": "Fetch Sentinel-2 NDVI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Sentinel-2 NDVI": {
+      "main": [
+        [
+          {
+            "node": "Hash NDVI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hash NDVI": {
+      "main": [
+        [
+          {
+            "node": "Fetch Elevation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Elevation": {
+      "main": [
+        [
+          {
+            "node": "Hash Elevation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hash Elevation": {
+      "main": [
+        [
+          {
+            "node": "Get Cached Cells",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Cached Cells": {
+      "main": [
+        [
+          {
+            "node": "Plan Grid Cells",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Plan Grid Cells": {
+      "main": [
+        [
+          {
+            "node": "Fetch Needed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Needed?": {
+      "main": [
+        [
+          {
+            "node": "Fetch Historical Archive",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Collect Cell Climate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Historical Archive": {
+      "main": [
+        [
+          {
+            "node": "Condense Archive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Condense Archive": {
+      "main": [
+        [
+          {
+            "node": "Hash Archive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hash Archive": {
+      "main": [
+        [
+          {
+            "node": "Pause For Rate Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pause For Rate Limit": {
+      "main": [
+        [
+          {
+            "node": "Fetch CMIP6 Projections",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch CMIP6 Projections": {
+      "main": [
+        [
+          {
+            "node": "Condense Climate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Condense Climate": {
+      "main": [
+        [
+          {
+            "node": "Hash Climate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hash Climate": {
+      "main": [
+        [
+          {
+            "node": "Finalize Cell Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finalize Cell Record": {
+      "main": [
+        [
+          {
+            "node": "Collect Cell Climate",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "Build Cache Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect Cell Climate": {
+      "main": [
+        [
+          {
+            "node": "Score Segments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Cache Rows": {
+      "main": [
+        [
+          {
+            "node": "Save Cell Cache",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score Segments": {
+      "main": [
+        [
+          {
+            "node": "Amber or Red?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build Baseline Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Amber or Red?": {
+      "main": [
+        [
+          {
+            "node": "Attach Explanation",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Explain Risk",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Upsert Predictions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Attach Explanation": {
+      "main": [
+        [
+          {
+            "node": "Upsert Predictions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Explain Risk": {
+      "main": [
+        [
+          {
+            "node": "Attach Explanation",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Build Baseline Rows": {
+      "main": [
+        [
+          {
+            "node": "Upsert Baselines",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert Baselines": {
+      "main": [
+        [
+          {
+            "node": "Build Source Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Source Rows": {
+      "main": [
+        [
+          {
+            "node": "Log Source Hashes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Explain Risk",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "tags": []
+}

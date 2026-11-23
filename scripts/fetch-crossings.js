@@ -9,6 +9,7 @@
 // W2 reads this from corridor_baselines.crossings_json. A segment with no entry stays "not checked", never "no crossing".
 // Usage: node scripts/fetch-crossings.js https://YOUR-INSTANCE.app.n8n.cloud/webhook/terracorridor
 //        node scripts/fetch-crossings.js path/to/corridor.json
+//        node scripts/fetch-crossings.js <API or file> data/ngtl/crossings.json   (second argument: where to write)
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
@@ -52,20 +53,47 @@ async function main() {
     for (const x of hits[s.id] || []) { const k = (x.name || '') + '|' + x.kind; if (seen.has(k)) continue; seen.add(k); list.push({ name: x.name, kind: x.kind, at: x.at, peakFlowM3s: null }); }
     out[s.id] = list;
   }
-  for (const id of Object.keys(out)) for (const x of out[id]) {
-    if (x.kind !== 'river') continue;
+  // River flow. GloFAS cells are about 5 km (0.05 degree) and the cell nearest a crossing is often a bank or side
+  // channel: on NGTL the nearest cell gave the Athabasca 0.2 m3/s and the North Saskatchewan 6.2 m3/s. So each river
+  // crossing looks at the 3x3 block of cells around it (about 5 km either way) and takes the largest mean annual peak.
+  // When two crossings land on the same largest cell (a tributary meeting the main river), the main river gets it:
+  // the crossing whose named waterway is longest in the bounding box. The other keeps its nearest-cell value.
+  const STEP = 0.05;
+  const lenKm = {};
+  for (const w of waterways) if (w.name) { let d = 0; for (let i = 1; i < w.coords.length; i++) d += ENGINE.haversine(w.coords[i - 1], w.coords[i]); lenKm[w.name] = (lenKm[w.name] || 0) + d / 1000; }
+  const rivers = [];
+  for (const id of Object.keys(out)) for (const x of out[id]) if (x.kind === 'river') rivers.push(x);
+  for (const x of rivers) {
     try {
-      const u = `https://flood-api.open-meteo.com/v1/flood?latitude=${x.at[1]}&longitude=${x.at[0]}&daily=river_discharge&start_date=1995-01-01&end_date=2025-12-31`;
-      const j = await (await fetch(u)).json();
-      if (j.error) throw new Error(j.reason);
-      x.peakFlowM3s = ENGINE.peakFlow(j.daily);
-      x.flowSource = 'Open-Meteo Flood API (GloFAS), mean annual peak 1995-2025, nearest 5 km river cell';
+      const pts = [];
+      for (const dy of [0, -STEP, STEP]) for (const dx of [0, -STEP, STEP]) pts.push([+(x.at[1] + dy).toFixed(4), +(x.at[0] + dx).toFixed(4)]);
+      const u = 'https://flood-api.open-meteo.com/v1/flood?latitude=' + pts.map((p) => p[0]).join(',') + '&longitude=' + pts.map((p) => p[1]).join(',') + '&daily=river_discharge&start_date=1995-01-01&end_date=2025-12-31';
+      let j = null;
+      for (let attempt = 1; attempt <= 4 && !j; attempt++) {
+        const r = await (await fetch(u, { headers: { 'User-Agent': 'TerraCorridor-laptop-seed/1.0' } })).json();
+        if (r && r.error) { if (/limit/i.test(r.reason || '') && attempt < 4) { console.log('  flood API: ' + r.reason + ' waiting 65s'); await sleep(65000); continue; } throw new Error(r.reason); }
+        j = r;
+      }
+      const cells = (Array.isArray(j) ? j : [j]).map((c) => ({ lat: c.latitude, lon: c.longitude, peak: ENGINE.peakFlow(c.daily) }));
+      const best = cells.filter((c) => c.peak != null).sort((a, b) => b.peak - a.peak)[0] || null;
+      x._nearest = cells[0] ? cells[0].peak : null;
+      x._best = best;
       flowStatus = 'ok';
       await sleep(1500);
     } catch (e) { flowStatus = 'unavailable: ' + String(e.message || e).slice(0, 120); }
   }
+  const byCell = {};
+  for (const x of rivers) if (x._best) (byCell[x._best.lat + '_' + x._best.lon] ||= []).push(x);
+  for (const group of Object.values(byCell)) {
+    group.sort((a, b) => (lenKm[b.name] || 0) - (lenKm[a.name] || 0));
+    group.forEach((x, i) => {
+      if (i === 0) { x.peakFlowM3s = x._best.peak; x.flowSource = 'Open-Meteo Flood API (GloFAS), mean annual peak 1995-2025, largest of the 3x3 5 km cells around the crossing (nearest cell: ' + x._nearest + ' m3/s)'; }
+      else { x.peakFlowM3s = x._nearest; x.flowSource = 'Open-Meteo Flood API (GloFAS), mean annual peak 1995-2025, nearest 5 km cell (the larger cell nearby belongs to ' + group[0].name + ')'; }
+    });
+  }
+  for (const x of rivers) { delete x._nearest; delete x._best; }
   const name = (corridor.meta && corridor.meta.corridorId) || 'corridor';
-  const file = path.join(__dirname, '..', 'data', 'cache', 'crossings', name + '-crossings.json');
+  const file = process.argv[3] ? path.resolve(process.argv[3]) : path.join(__dirname, '..', 'data', 'cache', 'crossings', name + '-crossings.json');
   fs.mkdirSync(path.dirname(file), { recursive: true });
   const withX = Object.values(out).filter((l) => l.length).length;
   fs.writeFileSync(file, JSON.stringify({

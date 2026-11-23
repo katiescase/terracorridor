@@ -28,13 +28,15 @@ const { seriesMetrics, ratio, HORIZONS, MODELS } = new Function('$', helper + '\
 const args = process.argv.slice(2);
 const corridorFlag = args.indexOf('--corridor');
 const corridorId = corridorFlag >= 0 ? args[corridorFlag + 1] : 'ab-strathcona-demo';
-if (!['ab-strathcona-demo','bc-coquihalla'].includes(corridorId)) throw new Error('Unknown corridor ID');
+if (!['ab-strathcona-demo','bc-coquihalla','ngtl-ab-osm'].includes(corridorId)) throw new Error('Unknown corridor ID');
 if (corridorFlag >= 0) args.splice(corridorFlag, 2);
-const CELL_FILE = corridorId === 'bc-coquihalla' ? path.join(ROOT, 'data/corridors/bc-coquihalla/climate-cells.json') : path.join(ROOT, 'data', 'cache', 'cells', 'trans-northern-cells.json');
+const CELL_FILE = corridorId === 'bc-coquihalla' ? path.join(ROOT, 'data/corridors/bc-coquihalla/climate-cells.json') : corridorId === 'ngtl-ab-osm' ? path.join(ROOT, 'data/ngtl/climate-cells.json') : path.join(ROOT, 'data', 'cache', 'cells', 'trans-northern-cells.json');
 const saved = fs.existsSync(CELL_FILE) ? JSON.parse(fs.readFileSync(CELL_FILE, 'utf8')) : [];
 const wanted = args;
 // The four 10 km cells the live 22 km corridor crosses (W2 "Select Batch Segments" rounds each segment centroid to 0.1 degree).
-const CORRIDOR_CELLS = corridorId === 'bc-coquihalla' ? ['49.40_-121.30'] : ['53.30_-113.50', '53.40_-113.50', '53.40_-113.40', '53.50_-113.40'];
+// NGTL: the 0.5-degree cells its 508 segments fall in (NGTL W2 grid_cell_deg = 0.5), listed in data/ngtl/cells.json, busiest first so a
+// rate-limited run (Open-Meteo allows about 5 cells a day per IP) covers the most kilometres.
+const CORRIDOR_CELLS = corridorId === 'bc-coquihalla' ? ['49.40_-121.30'] : corridorId === 'ngtl-ab-osm' ? JSON.parse(fs.readFileSync(path.join(ROOT, 'data/ngtl/cells.json'), 'utf8')).cells.slice().sort((a, b) => b.segments - a.segments).map((c) => c.cell_key) : ['53.30_-113.50', '53.40_-113.50', '53.40_-113.40', '53.50_-113.40'];
 const CELLS = (wanted.length ? wanted : [...new Set(CORRIDOR_CELLS.concat(saved.map((r) => r.cell_key)))]).map((k) => ({ cell_key: k, lat: Number(k.split('_')[0]), lon: Number(k.split('_')[1]) }));
 const SLEEP_MS = Number(process.env.SLEEP_MS || 65000);
 const OUT_DIR = process.env.OUT_DIR || path.join(ROOT, 'work', 'climate-seed');
@@ -42,10 +44,14 @@ fs.mkdirSync(OUT_DIR, { recursive: true });
 
 // ---- download helpers ----
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+// Optional: OPEN_METEO_API_KEY (a paid Open-Meteo plan) lifts the free ~5 cells/day limit. The key is added only
+// to the request: rows keep the public URL, so it never reaches the repo or the n8n tables.
+const OM_KEY = process.env.OPEN_METEO_API_KEY || '';
+const withKey = (url) => OM_KEY ? url.replace('https://archive-api.', 'https://customer-archive-api.').replace('https://climate-api.', 'https://customer-climate-api.') + '&apikey=' + encodeURIComponent(OM_KEY) : url;
 async function download(url, label) {
   for (let attempt = 1; attempt <= 6; attempt++) {
     try {
-      const res = await fetch(url, { signal: AbortSignal.timeout(90000), headers: { 'User-Agent': 'TerraCorridor-laptop-seed/1.0' } });
+      const res = await fetch(withKey(url), { signal: AbortSignal.timeout(90000), headers: { 'User-Agent': 'TerraCorridor-laptop-seed/1.0' } });
       const buf = Buffer.from(await res.arrayBuffer());
       if (res.status === 200) return buf;
       console.log('  ' + label + ': HTTP ' + res.status + ' ' + buf.toString('utf8').slice(0, 120));

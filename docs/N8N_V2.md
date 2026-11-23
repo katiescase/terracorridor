@@ -51,11 +51,28 @@ A separate set for NGTL lives in the n8n folder **"TerraCorridor NGTL"**. They w
 | NGTL · W1: Corridor Setup | `hj7z3Zm0fsYu71bn` | Reads `data/ngtl/ngtl-overpass.json` pinned at commit 5c96a30 from GitHub (no Overpass). Segmenter keeps all six lines (`workflows/ngtl/segment-route.js`, built by `scripts/make-ngtl-w1.js`). No offline fixture: if GitHub is unreachable the batch fails closed. Starts NGTL W2 |
 | NGTL · W2: Long-Range Engine | `znZUJQb6r75IUavf` | Same engine; default corridor `ngtl-ab-osm` |
 | NGTL · WF3 - Near-term watch | `fqZoknjxE98R0aQi` | DRY_RUN stays true: logs what it would draft, never calls WF4 |
+| NGTL Seed - Hazard inputs | `e2KQq77pkzUkNdF1` | Manual only. Loads `ngtl_climate_cells` and the crossings on `ngtl_baselines` from `workflows/ngtl/NGTL Seed - Hazard inputs.json`. Run NGTL W2 after it |
 | NGTL · API - Dashboard feed | `QHtI0E4XlA1YKSHb` | GET `terracorridor-ngtl/corridor`. Reads ngtl_* geohazard tables; class, obligations, work orders and build are the shared tables, read only |
 
 Tables: ngtl_segments `xS9ClnujA4OcoBnp`, ngtl_sources `pKGFtBvarPgjHcM2`, ngtl_baselines `ZTaX6AEU5LB1jjMD`, ngtl_climate_cells `7rAbbtFPPAoZJ6jC`, ngtl_predictions `ZI6kdrxJeRhkLi0t`, ngtl_watch `H3ZGRfXhdpFzOzHw`, ngtl_audit `eRaYp9xSdyYLgGKW`.
 
 Corridor `ngtl-ab-osm` is the 505 km of NGTL that OpenStreetMap names (6 lines, Fort Saskatchewan area north to Wandering River and Athabasca; 508 rows of 1 km). The rest of the 24,119 km system is "route not mapped" (see `data/ngtl/README.md`). The dashboard lists it in the corridor picker and reads its own feed (`api` in `data/corridors/catalog.json`).
+
+### Getting NGTL scored (Nov 23)
+
+W2 needs a climate cell for every segment, and Open-Meteo blocks n8n Cloud, so cells are fetched from a laptop as for Edmonton. Two NGTL-only differences in **NGTL · W2**, exported to `workflows/ngtl/NGTL · W2 - Long-Range Engine.json` (re-import that file after changing it; n8n versions are named and described):
+
+- **`grid_cell_deg` = 0.5** (Edmonton stays 0.1). Open-Meteo's free tier allows about 5 cells a day per IP; at 0.1 degree NGTL needs 55 cells, at 0.5 degree 9 (`data/ngtl/cells.json`). A 0.5 degree cell is about 55 × 32 km here, close to the native grid of the three climate models, but every km in a cell shares its climate numbers.
+- **Slower NDVI and elevation calls** (NDVI 5 per 3 s, elevation 10 per 3 s). At the old pace 441 of 508 segments came back "Try spacing your requests out" and stayed unverified.
+
+Steps:
+
+1. `node scripts/fetch-climate-cells.js --corridor ngtl-ab-osm` (busiest cells first, resumable; writes `data/ngtl/climate-cells.json`). With a paid Open-Meteo plan set `OPEN_METEO_API_KEY`; the key is sent only with the request, never stored.
+2. `node scripts/make-seed-workflow.js --corridor ngtl-ab-osm`, commit, push.
+3. In n8n, open **NGTL Seed - Hazard inputs**, Ctrl+A, Delete, ⋯ → Import from URL with the raw GitHub link to `workflows/ngtl/NGTL Seed - Hazard inputs.json`, save, Execute. It upserts `ngtl_climate_cells` and writes crossings to `ngtl_baselines`.
+4. Execute **NGTL · W2**. Re-running also fills NDVI that was rate-limited the time before (W2 keeps the last good series).
+
+Crossings (`data/ngtl/crossings.json`, from `node scripts/fetch-crossings.js <feed> data/ngtl/crossings.json`): 17 of 508 km cross a mapped waterway. The first fetch took river flow from the GloFAS cell nearest each crossing, which missed the main channel (Athabasca 0.2 and 1.4 m³/s, North Saskatchewan 6.2 m³/s). The script now takes the largest of the 3×3 cells around the crossing, and where a tributary and the main river share that cell the main river (longest named waterway) gets it. Until it is re-run and reseeded, treat river-crossing priority on NGTL as understated.
 
 ## How they connect
 

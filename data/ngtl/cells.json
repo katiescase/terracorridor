@@ -1,0 +1,43 @@
+{
+ "grid_cell_deg": 0.5,
+ "source": "NGTL API feed terracorridor-ngtl/corridor, 2026-11-23T05:04:14.650Z. Cell = midpoint of segment start/end rounded to grid_cell_deg, as W2 Select Batch Segments does. NGTL W2 runs at 0.5 degree (about 55 x 32 km here, close to the native grid of the three climate models) because Open-Meteo free tier allows about 5 cells a day per IP.",
+ "segments": 508,
+ "cells": [
+  {
+   "cell_key": "54.00_-113.00",
+   "segments": 54
+  },
+  {
+   "cell_key": "54.50_-112.50",
+   "segments": 46
+  },
+  {
+   "cell_key": "54.50_-113.00",
+   "segments": 114
+  },
+  {
+   "cell_key": "55.00_-112.50",
+   "segments": 109
+  },
+  {
+   "cell_key": "55.00_-113.00",
+   "segments": 22
+  },
+  {
+   "cell_key": "55.00_-113.50",
+   "segments": 75
+  },
+  {
+   "cell_key": "55.50_-112.50",
+   "segments": 59
+  },
+  {
+   "cell_key": "55.50_-113.50",
+   "segments": 12
+  },
+  {
+   "cell_key": "55.50_-114.00",
+   "segments": 17
+  }
+ ]
+}

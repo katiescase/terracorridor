@@ -1,0 +1,36 @@
+# Publishes deploy/ (the prebuilt dashboard and platform page) to GitHub Pages.
+# Live data comes from the n8n feeds at page load, so new scores show without a new deploy;
+# this only needs to run when deploy/ changes (npm run build regenerates it).
+# One-time setup by a repo admin: Settings -> Pages -> Build and deployment -> Source: GitHub Actions.
+# Site: https://katiescase.github.io/terracorridor/  (dashboard at index.html, segment record at platform.html)
+name: Pages
+
+on:
+  push:
+    branches: [main]
+    paths: ['deploy/**', '.github/workflows/pages.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: deploy
+      - id: deployment
+        uses: actions/deploy-pages@v4
